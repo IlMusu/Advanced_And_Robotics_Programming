@@ -3,19 +3,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
- 
-// 0: go to initial position
-// 2: stop
-// 1: move_forward
-//-1: move_backward
-int command = 2;
+
+#define MOVE_FORWARD 1
+#define MOVE_BACKWARD -1
+#define STOP 2
+
+int command = STOP;
 
 float current_position = 0.0;
 float estimated_position = 0.0;
 
 float step = 0.01F;
-
-int msleep(long msec);
 
 int main(int argc, char *argv[])
 {
@@ -23,30 +21,14 @@ int main(int argc, char *argv[])
     
     while(1)
     {
-        char temp[10];
-        // returns -1 if pipe is empty, hence, no command
-        if(read(pipe_fd, temp, sizeof(int)) != -1)
-        {
-            command = atoi(temp);
-            printf("command read %s\n", temp);
-        }
+        // returns -1 if pipe is empty, hence, no new command
+        if(read(pipe_fd, &command, sizeof(int)) != -1)
+            printf("New command received: %i. \n", command);
         
-        if(command == 0)
+        // move procedure
+        if((command == MOVE_FORWARD  && current_position < 1) || 
+           (command == MOVE_BACKWARD && current_position > 0) )
         {
-            // reset procedure
-            if(current_position > 0)
-            {
-                current_position -= step;
-                if(current_position < 0)
-                    current_position = 0;
-            }
-        }
-        
-        else if( (command == 1 && current_position < 1) || 
-                 (command == -1 && current_position > 0) )
-        {
-        
-            // move procedure
             current_position += command*step;
             if(current_position > 1)
                 current_position = 1;
@@ -57,29 +39,9 @@ int main(int argc, char *argv[])
             //TODO send estimate position 
         }
         
-        //printf("Current position is %f.\n", current_position);
+        printf("Current position is %f.\n", current_position);
         
-        msleep(100);
+        // Sleep for 100 ms
+        usleep(100000);
     }
-}
-
-int msleep(long msec)
-{
-    struct timespec ts;
-    int res;
-
-    if (msec < 0)
-    {
-        errno = EINVAL;
-        return -1;
-    }
-
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
-
-    do {
-        res = nanosleep(&ts, &ts);
-    } while (res && errno == EINTR);
-
-    return res;
 }

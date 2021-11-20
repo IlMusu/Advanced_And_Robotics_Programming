@@ -1,21 +1,21 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
-{
-    // Gets the file descriptors for the two motors
-    // This needs conversion from string to int
-    int fd_motor_x = atoi(argv[1]);
-    int fd_motor_z = 5; //atoi(argv[2]); 5 is temporary, just to test
+{    
+    // Opening files
+    int fd_x = open(argv[1], O_WRONLY);
+    int fd_z = open(argv[2], O_WRONLY);
     
     while(1)
     {
         printf("Insert command: ");
         fflush(stdout);
         
-        // Reads 80 chars from the 
+        // Reads a string from the command line
         char line[80];
         scanf("%s", line);
         
@@ -29,9 +29,9 @@ int main(int argc, char *argv[])
         // Analizes the first part of the command
         // to understand which motor to use
         if(*pointer == 'x')
-            fd = fd_motor_x;
+            fd = fd_x;
         else if(*pointer == 'z')
-            fd = fd_motor_z;
+            fd = fd_z;
         
         if(fd != -1)
         {
@@ -59,10 +59,15 @@ int main(int argc, char *argv[])
         }
         else
         {
-            // Command is valid, can be sent to motors
-            write(fd, &command, sizeof(int));
+            // Command is valid, sending it to motor
+            if(write(fd, &command, sizeof(int)) == -1)
+                perror("Passing command to motor");
         }
     }
+    
+    // Closing files
+    close(fd_x);
+    close(fd_z);
     
     return 0;
 }

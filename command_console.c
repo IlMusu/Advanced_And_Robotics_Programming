@@ -3,12 +3,20 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
+
+void print_commands_info(void);
 
 int main(int argc, char *argv[])
 {    
     // Opening files
     int fd_x = open(argv[1], O_WRONLY);
     int fd_z = open(argv[2], O_WRONLY);
+    
+    int pid_wd = atoi(argv[3]);
+    printf("Watchdog id: %i\n", pid_wd);
+    
+    print_commands_info();
     
     while(1)
     {
@@ -18,6 +26,15 @@ int main(int argc, char *argv[])
         // Reads a string from the command line
         char line[80];
         scanf("%s", line);
+        
+        // Sending signal to watchdog
+        kill(SIGUSR1, pid_wd);
+        
+        if(strcmp(line, "help") == 0)
+        {
+            print_commands_info();
+            continue;
+        }
         
         // Create a pointer to the first element of the string
         // This is used to analize the string
@@ -70,4 +87,17 @@ int main(int argc, char *argv[])
     close(fd_z);
     
     return 0;
+}
+
+void print_commands_info(void)
+{
+    printf("- These are the commands to move the hoist:\n");
+    printf(" x_inc : makes the hoist move on positive x asis\n");
+    printf(" x_dec : makes the hoist move on negative x asis\n");
+    printf(" x_stp : makes the host stop the motion on x asis\n");
+    printf(" z_inc : makes the hoist move on positive z asix\n");
+    printf(" z_dec : makes the hoist move on negative z asix\n");
+    printf(" z_stp : makes the host stop the motion on z asis\n");
+    printf(" help : prints the commands and it's functions\n");
+    fflush(stdout);
 }

@@ -6,15 +6,18 @@
 #include <fcntl.h>
 #include <sys/select.h>
 #include <signal.h>
+#include "Libraries/logger.c"
 
 #define MOVE_FORWARD 1
 #define MOVE_BACKWARD -1
 #define STOP 2
 #define RESET 3
 
-int read_command();
+void read_command();
 void execute_command();
 void receive_signal(int signo);
+
+Logger logger;
 
 int command = STOP;
 int is_emergency = 0;
@@ -30,73 +33,71 @@ struct timeval tv_zero = {0, 0};
 
 int main(int argc, char *argv[])
 {
-    // Opens named pipes for comunication
-    int fd_cmd = open(argv[1], O_RDONLY);
-    int fd_log = open(argv[2], O_WRONLY);
+    // Creating logger
+    logger = (Logger){"Motor", atoi(argv[1])};
+       
     // Getting watchdog process id
-    pid_wd = atoi(argv[3]);
+    pid_wd = atoi(argv[2]);
+    
+    // Opens named pipes for comunication
+    int fd_cmd = open(argv[3], O_RDONLY);
+    if(fd_cmd == -1)
+        error_exit(&logger, "Opening pipe with command_console");
+        
+    int fd_ins = open(argv[4], O_WRONLY);
+    if(fd_ins == -1)
+        error_exit(&logger, "Opening pipe with inspection_console");
     
     // Inits the signal handler
     signal(SIGUSR1, receive_signal);
     signal(SIGUSR2, receive_signal);
     
     // Writes initial positions on log file
-    write(fd_log, &estimated_position, sizeof(float));
+    write(fd_ins, &estimated_position, sizeof(float));
     
     while(1)
     {
-        if(read_command(fd_cmd) != -1)
-            execute_command(fd_log);
-        else
-        {
-            perror("Could not read new command");
-            fflush(stdout);
-        }
+        read_command(fd_cmd);
+        execute_command(fd_ins);
         
         // Sleep for 10000 ms
         usleep(1000000);
     }
     
     // Closes named pipe
-    close(fd_cmd);
-    close(fd_log);
+    if(close(fd_cmd) == -1)
+        error_exit(&logger, "Closing pipe with command_console");
+    if(close(fd_ins) == -1)
+        error_exit(&logger, "Closing pipe with inspection_console");
+        
+    return 0;
 }
 
-int read_command(int fd)
+void read_command(int fd_cmd)
 {
+    // Caching previous command
     int prev_command = command;
-        
-    // Return value used to check if an error happened
-    // and if an new command has beed read or not
-    int value = 0;
     
     // Use of select() to make non-blocking reads operation
     FD_ZERO(&fds);
-    FD_SET(fd, &fds);
-    int ret = select(FD_SETSIZE+1, &fds, NULL, NULL, &tv_zero);
+    FD_SET(fd_cmd, &fds);
     
-    switch(ret)
-    {
-    case -1:
-        // Some error occurred
-        value = -1;
-        break;
-    case 0:
-        // File is not available
-        break;
-    default:
-        // File is available for reading
-        value = read(fd, &command, sizeof(int));
+    if(select(FD_SETSIZE+1, &fds, NULL, NULL, &tv_zero) == -1)
+        error_exit(&logger, "Selecting file descriptors");
         
-        // RESET command cannot be interrupted
+    // If pipe is available for reading
+    if(FD_ISSET(fd_cmd, &fds))
+    {
+        if(read(fd_cmd, &command, sizeof(int)) == -1)
+            error_exit(&logger, "Reading command from pipe");
+        
+        // RESET command cannot be interrupted by command_console
+        // so we just ignore the new command
         if(prev_command == RESET)
             command = prev_command;
             
         is_emergency = 0;
-        break;
     }
-    
-    return value;
 }
 
 void execute_command(int fd_log)
@@ -143,7 +144,7 @@ void execute_command(int fd_log)
         
         // Sending activity signal to watchdog
         if(kill(pid_wd, SIGUSR1) == -1)
-            perror("Cannot send signal to watchdog");
+            error_exit(&logger, "Sending update signal to watchdog");
     }
 }
 

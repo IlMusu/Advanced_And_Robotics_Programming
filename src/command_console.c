@@ -4,16 +4,28 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
+#include "Libraries/logger.c"
 
 void print_commands_info(void);
 
 int main(int argc, char *argv[])
-{    
-    // Opening files
-    int fd_x = open(argv[1], O_WRONLY);
-    int fd_z = open(argv[2], O_WRONLY);
+{
+    printf("################ COMMAND CONSOLE ################\n");
+    
+    // Creating logger
+    Logger logger = {"CommandConsole", atoi(argv[1])};
+    
     // Getting watchdog process id
-    int pid_wd = atoi(argv[3]);
+    int pid_wd = atoi(argv[2]);
+    
+    // Opening files
+    int fd_x = open(argv[3], O_WRONLY);
+    if(fd_x == -1)
+        error_exit(&logger, "Opening pipe with motor_x");
+    
+    int fd_z = open(argv[4], O_WRONLY);
+    if(fd_z == -1)
+        error_exit(&logger, "Opening pipe with motor_z");
     
     print_commands_info();
     
@@ -28,7 +40,7 @@ int main(int argc, char *argv[])
         
         // Sending activity signal to watchdog
         if(kill(pid_wd, SIGUSR1) == -1)
-            perror("Cannot send signal to watchdog");
+            error_exit(&logger, "Sending update signal to watchdog");
         
         if(strcmp(line, "help") == 0)
         {
@@ -76,22 +88,31 @@ int main(int argc, char *argv[])
         }
         else
         {
+            // Log info message
+            char text[80];
+            strcat(strcat(strcpy(text, "Received valid command ["), line), "]");
+            info(&logger, text);
+            
             // Command is valid, sending it to motor
             if(write(fd, &command, sizeof(int)) == -1)
-                perror("Passing command to motor");
+                error_exit(&logger, "Writing command on pipe");
         }
     }
     
-    // Closing files
-    close(fd_x);
-    close(fd_z);
+    // Closing opened files
     
+    if(close(fd_x) == -1)
+        error_exit(&logger, "Closing pipe with motor_x");
+        
+    if(close(fd_z) == -1)
+        error_exit(&logger, "Closing pipe with motor_z");
+        
     return 0;
 }
 
 void print_commands_info(void)
 {
-    printf("- These are the commands to move the hoist:\n");
+    printf("These are the commands to move the hoist:\n");
     printf(" x_inc : makes the hoist move on positive x asis\n");
     printf(" x_dec : makes the hoist move on negative x asis\n");
     printf(" x_stp : makes the host stop the motion on x asis\n");

@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <sys/select.h>
 #include <signal.h>
-#include "Libraries/logger.c"
+#include "../libraries/logger.c"
 
 #define MOVE_FORWARD 1
 #define MOVE_BACKWARD -1

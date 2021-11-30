@@ -1,0 +1,5 @@
+The 'inspection_console' process comunicates with 'motor_x' and 'motor_z' processes to retrieve informations about their current position. New information is available is displayed on the console if retrieved correctly and available.
+This process is also responsible for handling part of the comunication with the user which can prompt two commands, 's' and 'r', which make the process send two different signals to the motors:
+- s : stop the hoist until next command
+- r : moves the hoist to initial position
+This process is considered active when it received a new command from the user, so, if this happens, it sends a signal to the 'watchdog' process.

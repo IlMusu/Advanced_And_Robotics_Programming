@@ -1,0 +1,2 @@
+The 'watchdog' process has the tasks to check the activity of the following processes: 'command_console', 'inspection_console', 'motor_x' and 'motor_z'.
+This is handled via a timer: every time a process sends an activity signal to this process, the timer is interrupted and reset. But, if this process does not receives activity in the predefined time, it sends a RESET signal to the two motor processes and the timer is reset.

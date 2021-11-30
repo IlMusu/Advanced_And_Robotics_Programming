@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
-#include "Libraries/logger.c"
+#include "../libraries/logger.c"
 
 void print_commands_info(void);
 
@@ -116,9 +116,9 @@ void print_commands_info(void)
     printf(" x_inc : makes the hoist move on positive x asis\n");
     printf(" x_dec : makes the hoist move on negative x asis\n");
     printf(" x_stp : makes the host stop the motion on x asis\n");
-    printf(" z_inc : makes the hoist move on positive z asix\n");
-    printf(" z_dec : makes the hoist move on negative z asix\n");
+    printf(" z_inc : makes the hoist move on positive z asis\n");
+    printf(" z_dec : makes the hoist move on negative z asis\n");
     printf(" z_stp : makes the host stop the motion on z asis\n");
-    printf(" help : prints the commands and it's functions\n");
+    printf(" help  : prints commands and their functions\n");
     fflush(stdout);
 }

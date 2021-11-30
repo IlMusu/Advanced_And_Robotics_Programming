@@ -1,0 +1,3 @@
+This project has the aim to create a software program to:
+1. Simulate the behaviour of a hoist which can move on two different axis via two motors (motor_x and motor_z).
+2. Create two consoles (command_console and inspection_console) to prompt commands to the hoist and get some informations about the hoist state.

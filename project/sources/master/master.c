@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <signal.h>
-#include "Libraries/logger.c"
+#include "../libraries/logger.c"
 
 pid_t spawn(const char* program, char** arg_list);
 void free_resources();
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     printf("################ MASTER PROCESS ################\n");
     fflush(stdout);
     
-    fl_log = "./log.txt";
+    fl_log = "./sources/log/log_file.txt";
     fl_cx = "/tmp/cmd_motor_x";
     fl_cz = "/tmp/cmd_motor_z";
     fl_ix = "/tmp/isp_motor_x";
@@ -64,19 +64,19 @@ int main(int argc, char *argv[])
     signal(SIGCHLD, receive_signal);
     
     // child (watchdog)
-    char * args_wd[] = { "./exe/watchdog", sfd_log, fl_mw, (char*)NULL };
-    pid_wd = spawn("./exe/watchdog", args_wd);
+    char * args_wd[] = { "./exes/watchdog", sfd_log, fl_mw, (char*)NULL };
+    pid_wd = spawn("./exes/watchdog", args_wd);
     
     char spid_wd[10];
     sprintf(spid_wd, "%i", pid_wd);
     
     // child (motor_x)
-    char * args_x[] = { "./exe/motor", sfd_log, spid_wd, fl_cx, fl_ix, (char*)NULL };
-    pid_mx = spawn("./exe/motor", args_x);
+    char * args_x[] = { "./exes/motor", sfd_log, spid_wd, fl_cx, fl_ix, (char*)NULL };
+    pid_mx = spawn("./exes/motor", args_x);
     
     // child (motor_z)
-    char * args_z[] = { "./exe/motor", sfd_log, spid_wd, fl_cz, fl_iz, (char*)NULL };
-    pid_mz = spawn("./exe/motor", args_z);
+    char * args_z[] = { "./exes/motor", sfd_log, spid_wd, fl_cz, fl_iz, (char*)NULL };
+    pid_mz = spawn("./exes/motor", args_z);
     
     // Comunicates to watchdog the pid of the two motors
     // And closes and frees pipe immediately
@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
     sprintf(spid_mz, "%i", pid_mz);
     
     // child (command_console)
-    char * args_cc[] = { "/usr/bin/konsole",  "-e", "./exe/command_console", 
+    char * args_cc[] = { "/usr/bin/konsole",  "-e", "./exes/command_console", 
                          sfd_log, spid_wd, fl_cx, fl_cz,(char*)NULL };
     pid_cc = spawn("/usr/bin/konsole", args_cc);
     
     // child (inspection_console)    
-    char * args_ic[] = { "/usr/bin/konsole",  "-e", "./exe/inspection_console", 
+    char * args_ic[] = { "/usr/bin/konsole",  "-e", "./exes/inspection_console", 
                          sfd_log, spid_wd, fl_ix, fl_iz, spid_mx, spid_mz, (char*)NULL };
     pid_ic = spawn("/usr/bin/konsole", args_ic);
     

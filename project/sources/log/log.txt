@@ -1,0 +1,1 @@
+The 'log_file.txt' file contains some informations about the previous execution of the program: when an important occurrence happens while the program is in execution, a trace of that occurrence happening is visible here. It is also present a trace of a process terminating it's execution because of a error.

@@ -7,7 +7,7 @@
 #include <sys/select.h>
 #include <string.h>
 #include <signal.h>
-#include "Libraries/logger.c"
+#include "../libraries/logger.c"
 
 Logger logger;
 

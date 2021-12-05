@@ -11,7 +11,7 @@
 
 pid_t spawn(const char* program, char** arg_list);
 void free_resources();
-void receive_signal(int signo);
+void on_child_terminated(int signo);
 
 char *fl_log, *fl_cx, *fl_cz, *fl_ix, *fl_iz, *fl_mw;
 pid_t pid_mx, pid_mz, pid_wd, pid_cc, pid_ic;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     
     //########################### CREATING PROCESSES #################################
     
-    signal(SIGCHLD, receive_signal);
+    signal(SIGCHLD, on_child_terminated);
     
     // child (watchdog)
     char * args_wd[] = { "./exes/watchdog", sfd_log, fl_mw, (char*)NULL };
@@ -121,7 +121,9 @@ int main(int argc, char *argv[])
     // Check if all the processes have been created correctly
     // Then, the master process waits for the end of one of its child.
     if(pid_wd == -1 || pid_mx == -1 || pid_mz == -1 || pid_cc == -1 || pid_ic == -1)
+    {
         printf("Could not create all child processes.\n");
+    }
     else
     {
         printf("All child processes created correctly.\n");
@@ -146,7 +148,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void receive_signal(int signo)
+void on_child_terminated(int signo)
 {
     if(signo == SIGCHLD)
     {

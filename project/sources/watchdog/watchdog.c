@@ -22,13 +22,10 @@ int main(int argc, char *argv[])
     int fd_mas = open(argv[2], O_RDONLY);
     if(fd_mas == -1)
         error_exit(&logger, "Opening pipe with master");
-        
     if(read(fd_mas, &pid_mx, sizeof(int)) == -1)
-        error_exit(&logger, "Reading motor_x pid from pipe");
-        
+        error_exit(&logger, "Reading motor_x pid from pipe"); 
     if(read(fd_mas, &pid_mz, sizeof(int)) == -1)
-        error_exit(&logger, "Reading motor_z pid from pipe");
-        
+        error_exit(&logger, "Reading motor_z pid from pipe"); 
     if(close(fd_mas) == -1)
         error_exit(&logger, "Closing pipe with master");
     

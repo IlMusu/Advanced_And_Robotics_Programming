@@ -1,0 +1,15 @@
+[CommandConsole] Received valid command [x_inc]
+[CommandConsole] Received valid command [x_stp]
+[CommandConsole] Received valid command [z_inc]
+[CommandConsole] Received valid command [x_inc]
+[InspectionConsole] Received valid command [s]
+[CommandConsole] Received valid command [x_inc]
+[InspectionConsole] Received valid command [r]
+[InspectionConsole] Received valid command [s]
+[CommandConsole] Received valid command [x_inc]
+[CommandConsole] Received valid command [x_stp]
+[Watchdog] No activity in time limit, resetting motors
+[Motor] Selecting file descriptors: Bad file descriptor
+[[MotorMotor] ] Selecting file descriptorsExited with error -1.: 
+Bad file descriptor
+[Motor] Exited with error -1.

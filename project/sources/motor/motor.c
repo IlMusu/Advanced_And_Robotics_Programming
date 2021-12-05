@@ -10,23 +10,25 @@
 
 #define MOVE_FORWARD 1
 #define MOVE_BACKWARD -1
-#define STOP 2
-#define RESET 3
+#define STOP_MOTION 2
+#define RESET_POSITION 3
+#define CLEAR_EMERGENCY 4
 
 void read_command();
 void execute_command();
 void receive_signal(int signo);
+void on_termination(int signo);
 
 Logger logger;
 
-int command = STOP;
+int command = STOP_MOTION;
 int is_emergency = 0;
 
 float current_position = 0.0;
 float estimated_position = 0.0;
 float step = 0.05F;
 
-int pid_wd;
+int pid_wd, fd_cmd, fd_ins;
 
 fd_set fds;
 struct timeval tv_zero = {0, 0};
@@ -40,17 +42,15 @@ int main(int argc, char *argv[])
     pid_wd = atoi(argv[2]);
     
     // Opens named pipes for comunication
-    int fd_cmd = open(argv[3], O_RDONLY);
-    if(fd_cmd == -1)
-        error_exit(&logger, "Opening pipe with command_console");
-        
-    int fd_ins = open(argv[4], O_WRONLY);
-    if(fd_ins == -1)
+    if((fd_cmd = open(argv[3], O_RDONLY)) == -1)
+        error_exit(&logger, "Opening pipe with command_console"); 
+    if((fd_ins = open(argv[4], O_WRONLY)) == -1)
         error_exit(&logger, "Opening pipe with inspection_console");
     
     // Inits the signal handler
     signal(SIGUSR1, receive_signal);
     signal(SIGUSR2, receive_signal);
+    signal(SIGTERM, on_termination);
     
     // Writes initial positions on log file
     write(fd_ins, &estimated_position, sizeof(float));
@@ -63,14 +63,20 @@ int main(int argc, char *argv[])
         // Sleep for 10000 ms
         usleep(1000000);
     }
-    
-    // Closes named pipe
-    if(close(fd_cmd) == -1)
-        error_exit(&logger, "Closing pipe with command_console");
-    if(close(fd_ins) == -1)
-        error_exit(&logger, "Closing pipe with inspection_console");
         
     return 0;
+}
+
+void on_termination(int signo)
+{
+    if(signo == SIGTERM)
+    {
+        // Closes named pipes on process termination
+        if(close(fd_cmd) == -1)
+            error_exit(&logger, "Closing pipe with command_console");
+        if(close(fd_ins) == -1)
+            error_exit(&logger, "Closing pipe with inspection_console");
+    }
 }
 
 void read_command(int fd_cmd)
@@ -91,12 +97,18 @@ void read_command(int fd_cmd)
         if(read(fd_cmd, &command, sizeof(int)) == -1)
             error_exit(&logger, "Reading command from pipe");
         
-        // RESET command cannot be interrupted by command_console
+        // RESET_POSITION command cannot be interrupted by command_console
         // so we just ignore the new command
-        if(prev_command == RESET)
+        if(prev_command == RESET_POSITION)
             command = prev_command;
-            
-        is_emergency = 0;
+        
+        // CLEAR_EMERGENCY must be handled immediately and then 
+        // the previous command must be restored
+        if(command == CLEAR_EMERGENCY)
+        {
+            command = prev_command;
+            is_emergency = 0;
+        }
     }
 }
 
@@ -105,7 +117,7 @@ void execute_command(int fd_log)
     int moved = 0;
     
     // Reset procedure
-    if(command == RESET && current_position > 0)
+    if(command == RESET_POSITION && current_position > 0)
     {
         current_position -= step;
         // This marks the end of execution of RESET, command
@@ -113,7 +125,7 @@ void execute_command(int fd_log)
         if(current_position <= 0)
         {
             current_position = 0;
-            command = STOP;
+            command = STOP_MOTION;
         }
         
         moved = 1;
@@ -152,14 +164,14 @@ void receive_signal(int signo)
 {
     if(signo == SIGUSR1)
     {
-        command = STOP;
+        command = STOP_MOTION;
         is_emergency = 1;
     }
     else if(signo == SIGUSR2)
     {   
         // Can reset only when is not an emergency
         if(is_emergency != 1)
-            command = RESET;
+            command = RESET_POSITION;
     }
 }
 

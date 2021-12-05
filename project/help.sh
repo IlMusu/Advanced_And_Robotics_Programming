@@ -8,4 +8,3 @@ sources/watchdog/watchdog.txt <(echo) \
 sources/libraries/logger.txt <(echo) \
 sources/log/log.txt <(echo) \
 | more -d -c -p
-clear

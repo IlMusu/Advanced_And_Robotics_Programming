@@ -1,6 +1,6 @@
 cp -r ./project ./temp
 rm -r ./temp/exes
-rm ./temp/execute_and_run.sh
+rm ./temp/compile_and_run.sh
 cd ./temp
 zip -r -q ../project.zip ./*
 cd ../

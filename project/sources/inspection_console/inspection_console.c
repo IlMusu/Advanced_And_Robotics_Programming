@@ -12,12 +12,14 @@
 Logger logger;
 
 int pid_mx, pid_mz, pid_wd;
+int logs[2];
 
 fd_set fds;
 struct timeval tv_zero = {0, 0};
 
 void print_commands_info(void);
 void scan_and_execute_command(void);
+void on_termination(int signo);
 
 int main(int argc, char *argv[])
 {    
@@ -26,24 +28,21 @@ int main(int argc, char *argv[])
     // Creating logger
     logger = (Logger){"InspectionConsole", atoi(argv[1])};
     
-    // Getting watchdog process id
-    pid_wd = atoi(argv[2]);
-    
-    // Opening named pipes for comunication
-    int logs[2];
-    logs[0] = open(argv[3], O_RDONLY);
-    if(logs[0] == -1)
-        error_exit(&logger, "Could not open pipe with motor_x");
-        
-    logs[1] = open(argv[4], O_RDONLY);
-    if(logs[1] == -1)
-        error_exit(&logger, "Could not open pipe with motor_z");
-        
     // Getting processes id
+    pid_wd = atoi(argv[2]);
     pid_mx = atoi(argv[5]);
     pid_mz = atoi(argv[6]);
     
-    float values[2] = {0, 0};
+    // Opening named pipes for comunication
+    if((logs[0] = open(argv[3], O_RDONLY)) == -1)
+        error_exit(&logger, "Could not open pipe with motor_x");
+    if((logs[1] = open(argv[4], O_RDONLY)) == -1)
+        error_exit(&logger, "Could not open pipe with motor_z");
+        
+    // Init signal handler for process termination
+    signal(SIGTERM, on_termination);
+    
+    float positions[2] = {0, 0};
     
     print_commands_info();
     
@@ -66,23 +65,29 @@ int main(int argc, char *argv[])
         for(int i=0; i<2; ++i)
             if(FD_ISSET(logs[i], &fds))
             {
-                if(read(logs[i], &values[i], sizeof(float)) == -1)
+                if(read(logs[i], &positions[i], sizeof(float)) == -1)
                     error_exit(&logger, "Reading value from console");
                 new_value = 1;
             }
         
         // Print the values if new data is available
         if(new_value)
-            printf("MotorX: %f | MotorZ: %f \n", values[0], values[1]);
+            printf("MotorX: %f | MotorZ: %f \n", positions[0], positions[1]);
     }
-    
-    if(close(logs[0]) == -1)
-        error_exit(&logger, "Closing pipe with motor_x");
-        
-    if(close(logs[1]) == -1)
-        error_exit(&logger, "Closing pipe with motor_x");
         
     return 0;
+}
+
+void on_termination(int signo)
+{
+    if(signo == SIGTERM)
+    {
+        // Closes named pipes on process termination
+        if(close(logs[0]) == -1)
+            error_exit(&logger, "Closing pipe with motor_x");
+        if(close(logs[1]) == -1)
+            error_exit(&logger, "Closing pipe with motor_z");
+    }
 }
 
 void print_commands_info(void)

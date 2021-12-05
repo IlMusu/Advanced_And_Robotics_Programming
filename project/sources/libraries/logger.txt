@@ -1,1 +1,1 @@
-The 'logger.c' is a helper program for writing info and error strings inside the log.txt file. Writing an error inside the log also causes the process which called the 'error_exit' function to terminate it's execution.
+The 'logger.c' is a helper library for writing info and error strings inside the log.txt file. Writing an error inside the log also causes the process which called the 'error_exit' function to terminate it's execution.

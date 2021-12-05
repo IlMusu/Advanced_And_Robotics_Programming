@@ -1,2 +1,0 @@
-[CommandConsole] Received valid command [x_inc]
-[CommandConsole] Received valid command [x_dec]

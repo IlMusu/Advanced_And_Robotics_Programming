@@ -7,13 +7,16 @@
 #include "../libraries/logger.c"
 
 void print_commands_info(void);
+void receive_signal(int signo);
+
+Logger logger;
 
 int main(int argc, char *argv[])
 {
     printf("################ COMMAND CONSOLE ################\n");
     
     // Creating logger
-    Logger logger = {"CommandConsole", atoi(argv[1])};
+    logger = (Logger){"CommandConsole", atoi(argv[1])};
     
     // Getting watchdog process id
     int pid_wd = atoi(argv[2]);

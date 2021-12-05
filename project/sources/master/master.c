@@ -135,7 +135,14 @@ int main(int argc, char *argv[])
         while(strcmp(command, "q") != 0);
     }
     
+    //############################## TERMINATING ###################################
+    
+    // Stop handling signal for child termination,
+    // we are going to terminate them all
+    signal(SIGCHLD, SIG_DFL);
+    
     free_resources();
+    
     return 0;
 }
 
@@ -143,8 +150,11 @@ void receive_signal(int signo)
 {
     if(signo == SIGCHLD)
     {
-        printf("\n");
-        printf("A child process has been terminated.\n");
+        int status;
+        int pid = wait(&status);
+        
+        printf("\n\n");
+        printf("Child with pid %i has been terminated with status %i.\n", pid, status);
         printf("Check log file for details of eventual errors.\n");
         free_resources();
         exit(0);
@@ -157,28 +167,32 @@ void free_resources()
     printf("\n");
     
     //Terminating all child processes
-    if(kill(pid_mx, SIGKILL) == -1 && errno != ESRCH)
+    if(kill(pid_mx, SIGTERM) == -1 && errno != ESRCH)
         perror("Killing motor_x process");
-    if(kill(pid_mz, SIGKILL) == -1 && errno != ESRCH)
+    if(kill(pid_mz, SIGTERM) == -1 && errno != ESRCH)
         perror("Killing motor_z process");
-    if(kill(pid_wd, SIGKILL) == -1 && errno != ESRCH)
+    if(kill(pid_wd, SIGTERM) == -1 && errno != ESRCH)
         perror("Killing watchdog process");
-    if(kill(pid_cc, SIGKILL) == -1 && errno != ESRCH)
+    if(kill(pid_cc, SIGTERM) == -1 && errno != ESRCH)
         perror("Killing command_console process");
-    if(kill(pid_ic, SIGKILL) == -1 && errno != ESRCH)
+    if(kill(pid_ic, SIGTERM) == -1 && errno != ESRCH)
         perror("Killing inspection_console process");
         
     // Closes log file
-    if(close(fd_log) == -1);
+    if(close(fd_log) == -1)
+        perror("Closing log file");
     
     // Freeing all the allocated files
-    if(unlink(fl_cx) == -1);
-    if(unlink(fl_cz) == -1);
-    if(unlink(fl_ix) == -1);
-    if(unlink(fl_iz) == -1);
+    if(unlink(fl_cx) == -1)
+        perror("Unlinking pipe for command_console and motor_x");
+    if(unlink(fl_cz) == -1)
+        perror("Unlinking pipe for command_console and motor_z");
+    if(unlink(fl_ix) == -1)
+        perror("Unlinking pipe for inspection_console and motor_x");
+    if(unlink(fl_iz) == -1)
+        perror("Unlinking pipe for inspection_console and motor_z");
     
     printf("All the resources have been cleaned up.\n");
-    printf("Exiting.\n");
     fflush(stdout);
 }
 
@@ -190,7 +204,8 @@ pid_t spawn(const char* program, char** arg_list)
         return child_pid;
      
     execvp(program, arg_list);
-    // execvp only returns if an error has occurred
+    
+    // System call 'execvp' only returns if an error has occurred
     perror("Could not create child process");
     return -1;
 }

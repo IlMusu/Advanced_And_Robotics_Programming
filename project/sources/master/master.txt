@@ -1,8 +1,0 @@
-The 'master' process handles the creation of the named pipes that will be used for interprocess comunication, and also, a named pipe that will be used as a log file so that important events that occur during the execution of the program can be traced for further inspections.
-Then, it creates all the needed child processes: 'watchdog', 'motor_x', 'motor_z', 'command_console' and 'inspection_console'.
-N.B. The processes 'motor_x' and 'motor_z' are two processes created from the same executable 'motor' but referred as 'motor_x' and 'motor_z' for simplicity.
-After that, some important informations are displayed on console.
-Then, the 'master' process waits for the end of execution of the program which can happen in two different ways:
-1. The user writes the letter 'q' in console.
-2. One of the child processes is terminated.
-Either this events cause the 'master' processes to kill all the remaining child processes, release all the allocated resources and terminate.

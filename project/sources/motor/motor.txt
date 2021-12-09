@@ -1,8 +1,0 @@
-The 'motor' process simulates the behaviour of a motor that can move on a linear axis. It receives commands from the 'command_console' process: all new commands are taken into account and executed only if the motor has not received a RESET signal, in this particular case, the motor needs to go to its initial position before receiving a new command. Hence, all commands received in this particular case are disgarded.
-After that, the current command is executed:
-- RESET: the motor returns to it's initial position.
-- MOVE_FORWARD: the motor moves forward until the end position.
-- MOVE_BACKWARD: the motor moves backward until the start position.
-- STOP: the motor does not move.
-After executing the command, if the motor moved, it calculates a estimated position to comunicate to the 'inspection_console' process and then, sends an anctivity signal to the 'watchdog' process.
-The motor sleep for 1 second to simulate the movement of a real motor and then returns to receive and execute commands.

@@ -99,6 +99,14 @@ int main(int argc, char *argv[])
         }
         case 3:
         {
+            spawn((char*[]){ "./exe/producer_socket", slength, (char*)NULL });
+            spawn((char*[]){ "./exe/consumer_socket", slength, (char*)NULL });
+            
+            get_time_from_file(&time_1, fl_time_1);
+            get_time_from_file(&time_2, fl_time_2);
+            
+            wait(NULL);
+            wait(NULL);
             break;
         }
         case 4: 

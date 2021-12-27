@@ -3,10 +3,12 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
-#include "libraries/utils.h"
+#include <malloc.h>
+#include "../libraries/utils.h"
 
 int main(int argc, char *argv[])
 {
+    // Opening named pipe
     int fd_napipe = open("/tmp/napipe", O_WRONLY);
     if(fd_napipe == -1)
         perror("Opening named pipe");
@@ -15,7 +17,9 @@ int main(int argc, char *argv[])
     int array_length = atoi(argv[1]);
     
     // Creates data array
-    char data[array_length];
+    char* data = (char*)malloc(array_length);
+    if(data == NULL)
+        printf("Not enough memory");
     fill_randomly(data, array_length);
     
     // Gets the time at the beginning of the transmission
@@ -27,13 +31,12 @@ int main(int argc, char *argv[])
     {
         if(write(fd_napipe, &data[i], sizeof(char)) == -1)
             perror("Writing on pipe");
-        else
-        {
-            printf("Writing %c on buffer\n", data[i]);
-            fflush(stdout);
-        }
     }
     
+    // Freeing memory used for array
+    free(data);
+    
+    // Closing named pipe
     if(close(fd_napipe) == -1)
         perror("Closing named pipe");
 }

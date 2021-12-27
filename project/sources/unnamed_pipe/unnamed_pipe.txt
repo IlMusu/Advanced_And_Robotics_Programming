@@ -1,0 +1,15 @@
+If the user chooses the unnamed pipe as the interprocess communication type, the two processes created by the 'master' process will
+behave as follows.
+
+'producer' process: the process gets the two file descriptor used for reading and writing via two of the
+arguments of the main function, and it closes the file descriptor used for reading; then, after getting the array length via another
+argument of the main function, it creates a data array (if there is enough memory) which will be filled with random characters.
+After this, the process gets the time before starting the transmission and finally it writes every element of the array on the named pipe.
+Once the transmission is finished the memory used for the array is freed.
+
+'consumer' process: the process gets the two file descriptor used for reading and writing via two of the
+arguments of the main function, and it closes the file descriptor used for writing; then, after getting the array length via another
+argument of the main function, it creates a data array (if there is enough memory) and finally the process fills the array by reading from
+the pipe the data transmitted by the 'producer' process.
+Once the transmission is finished the process gets the time and it frees the memory used for the array.
+

@@ -1,0 +1,29 @@
+If the user chooses the shared memory with circular buffer as the interprocess communication type, the two processes created 
+by the 'master' process will behave as follows.
+
+'producer' process: the process gets the array length and the circular buffer length as two arguments of the main function.
+After this, a series of operations follow to use and handle the circular buffer:
+1. a shared memory object is opend and the file descriptoer is provided;
+2. the size of the shared memory is configured;
+3. the shared memory object is mapped for writing operations and a void* pointer is returned so that there will be no need for a cast;
+4. three semaphores to handle the circular buffer are created.
+Then the process creates a data array (if there is enough memory) which will be filled with random characters.
+Subsequently the process gets the time before starting the transmission and it finally starts transmittind data:
+1. the process waits until the circular buffer is not full anymore and then it locks the semaphore;
+3. data is transmitted;
+4. the semaphore is unlocked;
+5. the process signlas that the buffer is not empty anymore.
+In the end, the process frees the memory used for the array, it deallocates the semaphores and it unmaps and deallocates the shared memory.
+
+'consumer' process: the process gets the circular buffer length as one of the arguments of the main function.
+After this, a series of operations follow to use and handle the circular buffer:
+1. a shared memory object is opend and the file descriptoer is provided;
+2. the size of the shared memory is configured;
+3. the shared memory object is mapped for reading operations and a void* pointer is returned so that there will be no need for a cast;
+4. three semaphores to handle the circular buffer are created.
+Then the process creates a data array (if there is enough memory) and the reading starts:
+1. the process waits until the circular buffer is not full anymore and then it locks the semaphore;
+3. data is read;
+4. the semaphore is unlocked;
+5. the process signlas that the buffer is not empty anymore.
+At the end of the transmission the process gets the time, it frees the memory used for the array, it deallocates the semaphores and it unmaps and deallocates the shared memory.

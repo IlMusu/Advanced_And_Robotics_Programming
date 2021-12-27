@@ -1,0 +1,12 @@
+The 'master' process handles the creation of the transmission channel. In particular, the process prompts the user to
+choose one type of interprocess communication among the following:
+1. unnamed pipe;
+2. named pipe;
+3. socket;
+4. shared memory with circular buffer.
+After this, the 'master' process prompts the user to decide the length of an array of data, from 1Mb to 100Mb, which will have to
+be transmitted from a child process to its father process via the transmission channel chosen by the user; if the user chooses the 
+shared memory with the circular buffer, the process will also prompt the user to choose the length of the buffer, from 1 Kb to 100Kb.
+Then the 'master' process proceeds to create two processes, 'producer' and 'consumer', using the function 'fork()' and 
+it calculates the communication time between these two processes.
+After displaying the transferring time the 'master' process terminates.

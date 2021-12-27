@@ -1,0 +1,15 @@
+If the user chooses the socket as the interprocess communication type, the two processes created by the 'master' process will
+behave as follows.
+
+'producer' process: the process gets the array length as one of the arguments of the main function and it proceeds to open the socket.
+After this, the process gets the server hostname, which is 127.0.0.1 (local host), it sets the server data and the port number,
+which is 51234, and it makes a connection request to the server.
+Then the process creates a data array (if there is enough memory) which will be filled with random characters.
+Subsequently the process gets the time before starting the transmission and finally it writes every element of the array on the socket.
+Once the transmission is finished the memory used for the array is freed.
+
+'consumer' process: the process gets the array length as one of the arguments of the main function and it proceeds to open the socket.
+After this, the process sets the server data and the port number, which is 51234, and it binds the server address to the socket. -
+Now the process makes the server listen for clients: once a client request is received and accepted, the process creates a data array 
+(if there is enough memory) and it fills the array by reading from the socket the data transmitted by the 'producer' process.
+Once the transmission is finished the process gets the time and it frees the memory used for the array.

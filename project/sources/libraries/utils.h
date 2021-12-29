@@ -9,7 +9,7 @@
 #include <stdio.h>
 
 void fill_randomly(char* array, int length);
-void write_time_in_file(struct timespec time, char* file);
-void get_time_from_file(struct timespec *time, char* file);
+int write_time_in_file(struct timespec time, char* file);
+int get_time_from_file(struct timespec *time, char* file);
 
 #endif //ASSIGNEMNT2_UTILS_LIBR

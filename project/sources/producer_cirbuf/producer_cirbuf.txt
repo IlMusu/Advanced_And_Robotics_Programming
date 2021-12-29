@@ -1,0 +1,17 @@
+The 'producer_cirbuf' process: 
+First, it gets, as arguments, the array size and the buffer size.
+After this, a series of operations are performed to initialize the shared memory object used to handle the circular buffer:
+1. The process opens a shared memory object, with read and write permissions, via the relative system call and obtains a file descriptor representing the object.
+2. The shared memory object size is initialized using the size of the array.
+3. The shared memory object is mapped for writing operations and the process obtains a void* pointer that represents the beginning of the shared memory region.
+Then, three semaphores are created: these are necessary to handle the circular buffer operations and are called 'sem_not_full', 'sem_not_empt' and 'sem_buffer'
+After that, it creates an array of chars (if there is enough memory) using the malloc function and fills it with random data.
+Before the comunication starts, the process gets the current time and comunicates it to the master process.
+Then, the process begins the comunications:
+1. The process waits on the 'sem_not_full' semaphore.
+2. The process waits on the 'sem_buffer' semaphore.
+3. The shared memory object is used to transmit data.
+4. The process posts on the 'sem_buffer' semaphore.
+5. The process posts on the 'sem_not_empt' semaphore.
+Then, it frees the memory allocated for the array.
+After that, it deallocates the semaphores and unmaps and deallocates the shared memory object.

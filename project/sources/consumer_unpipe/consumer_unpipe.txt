@@ -1,0 +1,6 @@
+The 'consumer_unpipe' process:
+First, it gets, as arguments, the two file descriptors which represent the unnamed pipe ends for reading and writing, and it closes the descriptor used for writing (it is not needed).
+Second, it gets, as argument, the array size and creates an array of chars (if there is enough memory) using the malloc function.
+Then, it reads on the unnamed pipe the data transmitted by the producer process.
+Once the transmission is finished, the process gets the current time and comunicates it to the master process.
+Finally, it frees the memory allocated for the array.

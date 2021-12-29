@@ -1,0 +1,7 @@
+The 'consumer_napipe' process: 
+First, it opens the named pipe in read only mode.
+Second, it gets, as argument, the array size and creates an array of chars (if there is enough memory) using the malloc function.
+Then, it reads on the named pipe the data transmitted by the producer process.
+Once the transmission is finished, the process gets the current time and comunicates it to the master process.
+Then, it frees the memory allocated for the array.
+Finally, it closes the named pipe used for the comunication.

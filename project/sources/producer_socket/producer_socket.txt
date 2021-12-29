@@ -1,0 +1,9 @@
+The 'producer_socket' process: 
+First, it gets, as argument, the array size.
+Second, it opens a socket via the corresponding system call and receives a file descriptor representing the opened socket.
+After that, the process creates a hostnet struct to contain the the server hostname and uses this struct to create a sockaddr_in struct and initialize it with some data relative to the server and also port number (which is 51234).
+Then, the process uses the just created struct to make a connection request to the server
+After that, it creates an array of chars (if there is enough memory) using the malloc function and fills it with random data.
+Before the comunication starts, the process gets the current time and comunicates it to the master process.
+Then, it writes to the socket the data that needs to be transmitted to the consumer process.
+Finally, it frees the memory allocated for the array.

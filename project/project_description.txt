@@ -1,0 +1,1 @@
+The aim of this project is to measure the efficiency in terms of speed, when transfering data from a producer to a consumer, of different models. In this implementation, the data that needs to be transfered is an array filled with random chars of which the user can decide the size in megabyte. The models are based on specific IPC transfer primitives.

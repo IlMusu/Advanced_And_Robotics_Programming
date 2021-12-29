@@ -3,38 +3,35 @@
 void fill_randomly(char* array, int length)
 {
     for(int i=0; i<length; ++i)
-    {
-        char value = 65+(random()%25);
-        array[i] = value;
-    }
+        array[i] = 65+(random()%25);
 }
 
-void get_time_from_file(struct timespec *time, char* file)
+int get_time_from_file(struct timespec *time, char* file)
 {
     int fd_time = open(file, O_RDONLY);
     if(fd_time == -1)
-        perror("Opening file for time");
+        return -1;
         
     if(read(fd_time, &(time->tv_sec), sizeof(long)) == -1)
-        perror("Reading seconds");
+        return -1;
     if(read(fd_time, &(time->tv_nsec), sizeof(long)) == -1)
-        perror("Reading nanoseconds");  
+        return -1;
         
     if(close(fd_time) == -1)
-        perror("Closing file for time");
+        return -1;
 }
 
-void write_time_in_file(struct timespec time, char* file)
+int write_time_in_file(struct timespec time, char* file)
 {
     int fd_time = open(file, O_WRONLY);
     if(fd_time == -1)
-        perror("Opening file for time");
+        return -1;
         
     if(write(fd_time, &(time.tv_sec), sizeof(long)) == -1)
-        perror("Writing seconds");
+        return -1;
     if(write(fd_time, &(time.tv_nsec), sizeof(long)) == -1)
-        perror("Writing nanoseconds");  
+        return -1;
         
     if(close(fd_time) == -1)
-        perror("Closing file for time");
+        return -1;
 }

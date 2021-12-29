@@ -1,0 +1,2 @@
+The 'logger.c' is a helper library for printing info and error strings inside the log.txt file.
+There are two functions ('perror_exit' and 'error_exit') for printing a error inside the log.txt file and both of them cause the caller program to terminate its execution. Another function ('perror_cont') behaves as the two previous ones but prevents the caller program from terminating its exection.

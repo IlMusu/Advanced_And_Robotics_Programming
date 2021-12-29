@@ -1,0 +1,14 @@
+The 'master' process handles the interaction with the user and the spawning of the two processes (the producer and the consumer) that will be responsible for the comunication of data.
+NB. Sometimes it is necessary to prepare some additional data for the comunication depending on the model chosen by the user: this is also handled by the master process.
+First, the process asks the user to choose a comunication model:
+1. unnamed pipe.
+2. named pipe.
+3. socket.
+4. shared memory with circular buffer.
+Second, the process asks the user to decide the size of the data, which will be transfered between the producer and the consumer, which can be between 1MB and 100MB.
+Then, the process handles the spawning of two processes:
+1. In case of 'unnamed pipe' the master process is also responsible for the creation and disposal of the unnamed pipe.
+2. In case of 'named pipe' the master process is also responsible for the creation and disposal of the named pipe.
+3. In case of 'socket' the master process only needs to spawn the two processes.
+4. In case of 'shared memory with circular buffer' the master process is also responsible for asking the user the size of the buffer which can be between 1KB and 100KB.
+Both processes, before terminating, comunicate to the master process the time at which the transmission started and ended. So, the master process can calculate the delta time and display it on screen.

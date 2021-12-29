@@ -1,0 +1,1 @@
+The 'utils.c' is a helper library that contains some usefull functions that are used is almost every program of this project.

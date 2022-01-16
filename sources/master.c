@@ -3,11 +3,19 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
+#include "./drone_api/drone_api.h"
 
 #define MAX_CLIENTS 10
 
+typedef struct{
+    int posx;
+    int posy;
+}drone;
+
 void accept_client();
-void on_socket_data(int c_endpoint);
+void on_socket_data(int id, int c_endpoint);
+void init_map();
+void print_map();
 void perror_exit();
 void free_resources();
 
@@ -15,8 +23,14 @@ int s_endpoint;
 int c_endpoints[MAX_CLIENTS];
 int connections = 0;
 
+char map[40][80];
+drone drones[MAX_CLIENTS];
+
 int main(int argc, char *argv[])
-{        
+{
+    // Inits the map to have walls
+    init_map();
+    
     struct sockaddr_in serv_addr;
     
     // Setting server data
@@ -60,8 +74,10 @@ int main(int argc, char *argv[])
         // If activity was on one of the the c_endpoints, new data is available
         for(int i=0; i<connections; ++i)
             if(FD_ISSET(c_endpoints[i], &fds))
-                on_socket_data(c_endpoints[i]);
-              
+                on_socket_data(i, c_endpoints[i]);
+                
+        // Prints the new map
+        print_map();
     }
         
     return 0;
@@ -79,9 +95,109 @@ void accept_client()
     c_endpoints[connections++] = c_endpoint;
 }
 
-void on_socket_data(int c_endpoint)
+void on_socket_data(int id, int c_endpoint)
 {
+    // Reading message type
+    int message;
+    if(read(c_endpoint, &message, sizeof(int)) == -1)
+        perror("Reading message type");
+        
+    switch(message)
+    {
+        case SPAWN_MESSAGE:
+        {
+            // Reading positions from the message
+            int posx, posy;
+            if(read(c_endpoint, &posx, sizeof(int)) == -1)
+                perror("Reading x position");
+            if(read(c_endpoint, &posy, sizeof(int)) == -1)
+                perror("Reading y position");
+            
+            if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
+            {
+                send_result(c_endpoint, OUT_OF_BOUNDS_POSITION);
+                return;
+            }
+            if(map[posx][posy] != ' ')
+            {
+                send_result(c_endpoint, OCCUPIED_POSITION);
+                return;
+            }
+            
+            // Creating drone
+            drones[id] = (drone){posx, posy};
+            map[posx][posy] = 'X';
+            
+            send_result(c_endpoint, SUCCESS);
+            break;
+        }
+        case MOVE_MESSAGE:
+        {
+            // Reading positions from the message
+            int offx, offy;
+            if(read(c_endpoint, &offx, sizeof(int)) == -1)
+                perror("Reading x position");
+            if(read(c_endpoint, &offy, sizeof(int)) == -1)
+                perror("Reading y position");
+                
+            drone d = drones[id];
+            int posx = d.posx + offx;
+            int posy = d.posy + offy;
+                
+            if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
+            {
+                send_result(c_endpoint, OUT_OF_BOUNDS_POSITION);
+                return;
+            }
+            if(map[posx][posy] == '*')
+            {
+                send_result(c_endpoint, NOT_MOVED_WALL);
+                return;
+            }
+            if(map[posx][posy] == '*')
+            {
+                send_result(c_endpoint, NOT_MOVED_DRONE);
+                return;
+            }
+            
+            map[d.posx][d.posy] = ' ';
+            map[posx][posy] = 'X';
+            
+            drones[id].posx = posx;
+            drones[id].posy = posy;
+            
+            send_result(c_endpoint, SUCCESS);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+void init_map()
+{
+    for(int i=0; i<40; ++i)
+    {
+        for(int j=0; j<80; ++j)
+        {
+            if(i==0 || i==39 || j==0 || j==79)
+                map[i][j] = '*';
+            else
+                map[i][j] = ' ';
+        }
+    }
+}
+
+void print_map()
+{
+    for(int i=39; i>=0; --i)
+    {
+        for(int j=79; j>=0; --j)
+            printf("%c", map[i][j]);
+        printf("\n");
+    }
     
+    fflush(stdout);
 }
 
 void perror_exit(char* s)

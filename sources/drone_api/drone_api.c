@@ -1,11 +1,21 @@
 #include "./drone_api.h"
 
-void decode_client_message(int id, int client_fd)
+int decode_client_message(int id, int client_fd)
 {
+    // Before using the file_descriptor, checks if the client is still connected
+    int error = 0;
+    socklen_t len = sizeof(error);
+    if(getsockopt (client_fd, SOL_SOCKET, SO_ERROR, &error, &len) == -1)
+        return -1;
+    if(error != 0)
+        return error;
+        
+    // Gets the message type
     int message;
     if(read(client_fd, &message, sizeof(int)) == -1)
         perror("Reading message type");
         
+    // Decodes message and calls handler
     int result;
     switch(message)
     {
@@ -46,6 +56,8 @@ void decode_client_message(int id, int client_fd)
     
     if(write(client_fd, &result, sizeof(int)) == -1)
         perror("Receiving result from master");
+        
+    return 0;
 }
 
 int send_spawn_message(int master_fd, int posx, int posy)
@@ -86,13 +98,13 @@ int send_move_message(int master_fd, int offx, int offy)
     return result;
 }
 
-int send_landing_message(int master_fd, int landing)
+int send_landing_message(int master_fd, int landed)
 {
     int message = LANDING_MESSAGE;
     if(write(master_fd, &message, sizeof(int)) == -1)
         perror("Sending message type");
         
-    if(write(master_fd, &landing, sizeof(int)) == -1)
+    if(write(master_fd, &landed, sizeof(int)) == -1)
         perror("Sending landing info");
         
     int result;
@@ -100,4 +112,31 @@ int send_landing_message(int master_fd, int landing)
         perror("Receiving result from master");
         
     return result;
+}
+
+void drone_error(int error)
+{
+    switch(error)
+    {
+        case SUCCESS:
+            printf("Success\n");
+            break;
+        case OUT_OF_BOUNDS_POSITION:
+            printf("Target position is not inside map\n");
+            break;
+        case OCCUPIED_POSITION_WALL:
+            printf("Target position is occupied by wall\n");
+            break;
+        case OCCUPIED_POSITION_DRONE:
+            printf("Target position is occupied by drone\n");
+            break;
+        case DRONE_NOT_SPAWNED:
+            printf("Drone is not yet spawned in map\n");
+            break;
+        case DRONE_IS_LANDED:
+            printf("Drone is currently landed\n");
+            break;
+        default:
+            printf("Print not implemented for %d\n", error);
+    }
 }

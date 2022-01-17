@@ -40,9 +40,6 @@ int main(int argc, char *argv[])
  	serv_addr.sin_family = AF_INET;
  	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
  	serv_addr.sin_port = htons(51234); 
- 	
-    printf("here");
-    fflush(stdout);
 
 	// Making a connection request to the server
 	if (connect(socket_fd,(struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
@@ -53,10 +50,13 @@ int main(int argc, char *argv[])
     
     int result = send_spawn_message(socket_fd, spawnx, spawny);
     printf("spawn result is: %i\n", result);
+    sleep(1);
+    
+    int moves = 0;
     
     while(1)
     {
-        int movement = rand() % 10 + 5;
+        int movement = rand() % 5 + 5;
         int offx = rand() % 3 - 1;
         int offy = rand() % 3 - 1;
         
@@ -64,8 +64,18 @@ int main(int argc, char *argv[])
         {
             printf("trying to move %i %i\n", offx, offy);
             int result = send_move_message(socket_fd, offx, offy);
-            printf("move result is: %i\n", result);
+            printf("move result is: ");
+            drone_error(result);
+            ++moves;
             sleep(1);
+        }
+        
+        if(moves >= 15)
+        {
+            send_landing_message(socket_fd, 1);
+            moves = 0;
+            sleep(10);
+            send_landing_message(socket_fd, 0);
         }
     }
     

@@ -40,10 +40,13 @@ int main(int argc, char *argv[])
  	serv_addr.sin_family = AF_INET;
  	bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length);
  	serv_addr.sin_port = htons(51234); 
+ 	
+    printf("here");
+    fflush(stdout);
 
 	// Making a connection request to the server
 	if (connect(socket_fd,(struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
- 		perror_exit("Connection with server"); 
+ 		perror_exit("Connection with server");
  		
     int spawnx = atoi(argv[1]);
     int spawny = atoi(argv[2]);

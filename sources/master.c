@@ -5,19 +5,32 @@
 #include <unistd.h>
 #include "./drone_api/drone_api.h"
 
-#define MAX_CLIENTS 10
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+
+#define MAX_CLIENTS 6
 
 typedef struct{
     int posx;
     int posy;
+    int is_landed;
 }drone;
 
+void free_resources();
 void accept_client();
-void on_socket_data(int id, int c_endpoint);
+int on_spawn_message(int id, int posx, int posy);
+int on_move_message(int id, int offx, int offy);
+int on_landing_message(int id, int landing);
 void init_map();
 void print_map();
 void perror_exit();
-void free_resources();
+
+char* colors[] = {RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN};
 
 int s_endpoint;
 int c_endpoints[MAX_CLIENTS];
@@ -30,6 +43,10 @@ int main(int argc, char *argv[])
 {
     // Inits the map to have walls
     init_map();
+    
+    handle_spawn_message = on_spawn_message;
+    handle_move_message = on_move_message;
+    handle_landing_message = on_landing_message;
     
     struct sockaddr_in serv_addr;
     
@@ -74,13 +91,25 @@ int main(int argc, char *argv[])
         // If activity was on one of the the c_endpoints, new data is available
         for(int i=0; i<connections; ++i)
             if(FD_ISSET(c_endpoints[i], &fds))
-                on_socket_data(i, c_endpoints[i]);
+                decode_client_message(i, c_endpoints[i]);
                 
         // Prints the new map
         print_map();
     }
         
     return 0;
+}
+
+void free_resources()
+{
+    // Closing connections with client
+    for(int i=0; i<connections; ++i)
+        if(close(c_endpoints[i]) == -1)
+            perror("Closing client connection");
+        
+    // Closing socket
+    if(close(s_endpoint) == -1)
+        perror("Closing socket");
 }
 
 void accept_client()
@@ -95,83 +124,48 @@ void accept_client()
     c_endpoints[connections++] = c_endpoint;
 }
 
-void on_socket_data(int id, int c_endpoint)
+int on_spawn_message(int id, int posx, int posy)
 {
-    // Reading message type
-    int message;
-    if(read(c_endpoint, &message, sizeof(int)) == -1)
-        perror("Reading message type");
+    if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
+        return OUT_OF_BOUNDS_POSITION;
+    if(map[posx][posy] != ' ')
+        return OCCUPIED_POSITION;
+    
+    // Creating drone
+    drones[id] = (drone){posx, posy};
+    map[posx][posy] = 'X';
+    
+    return SUCCESS;
+}
+
+int on_landing_message(int id, int landing)
+{
+    drone d = drones[id];
+    drones[id].is_landed = landing;
+    map[d.posx][d.posy] = 'O';
+    return SUCCESS;
+}
+
+int on_move_message(int id, int offx, int offy)
+{
+    drone d = drones[id];
+    int posx = d.posx + offx;
+    int posy = d.posy + offy;
         
-    switch(message)
-    {
-        case SPAWN_MESSAGE:
-        {
-            // Reading positions from the message
-            int posx, posy;
-            if(read(c_endpoint, &posx, sizeof(int)) == -1)
-                perror("Reading x position");
-            if(read(c_endpoint, &posy, sizeof(int)) == -1)
-                perror("Reading y position");
-            
-            if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
-            {
-                send_result(c_endpoint, OUT_OF_BOUNDS_POSITION);
-                return;
-            }
-            if(map[posx][posy] != ' ')
-            {
-                send_result(c_endpoint, OCCUPIED_POSITION);
-                return;
-            }
-            
-            // Creating drone
-            drones[id] = (drone){posx, posy};
-            map[posx][posy] = 'X';
-            
-            send_result(c_endpoint, SUCCESS);
-            break;
-        }
-        case MOVE_MESSAGE:
-        {
-            // Reading positions from the message
-            int offx, offy;
-            if(read(c_endpoint, &offx, sizeof(int)) == -1)
-                perror("Reading x position");
-            if(read(c_endpoint, &offy, sizeof(int)) == -1)
-                perror("Reading y position");
-                
-            drone d = drones[id];
-            int posx = d.posx + offx;
-            int posy = d.posy + offy;
-                
-            if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
-            {
-                send_result(c_endpoint, OUT_OF_BOUNDS_POSITION);
-                return;
-            }
-            if(map[posx][posy] == '*')
-            {
-                send_result(c_endpoint, NOT_MOVED_WALL);
-                return;
-            }
-            if(map[posx][posy] == '*')
-            {
-                send_result(c_endpoint, NOT_MOVED_DRONE);
-                return;
-            }
-            
-            map[d.posx][d.posy] = ' ';
-            map[posx][posy] = 'X';
-            
-            drones[id].posx = posx;
-            drones[id].posy = posy;
-            
-            send_result(c_endpoint, SUCCESS);
-            break;
-        }
-        default:
-            break;
-    }
+    if(posx < 0 || posx >= 40 || posy < 0 || posy >= 80)
+        return OUT_OF_BOUNDS_POSITION;
+    if(map[posx][posy] == '*')
+        return NOT_MOVED_WALL;
+    if(map[posx][posy] == 'X')
+        return NOT_MOVED_DRONE;
+    
+    map[d.posx][d.posy] = ' ';
+    map[posx][posy] = 'X';
+    
+    drones[id].posx = posx;
+    drones[id].posy = posy;
+    
+    return SUCCESS;
 }
 
 void init_map()
@@ -192,8 +186,22 @@ void print_map()
 {
     for(int i=39; i>=0; --i)
     {
-        for(int j=79; j>=0; --j)
+        for(int j=0; j<=79; ++j)
+        {
+            int is_drone = 0;
+            for(int c=0; c<connections; ++c)
+                if(drones[c].posx == i && drones[c].posy == j)
+                {
+                    printf("%s%c" RESET, colors[c], map[i][j]);
+                    is_drone = 1;
+                    break;
+                }
+                
+            if(is_drone)
+                continue;
+                
             printf("%c", map[i][j]);
+        }
         printf("\n");
     }
     
@@ -205,16 +213,4 @@ void perror_exit(char* s)
     free_resources();
     perror(s);
     exit(0);
-}
-
-void free_resources()
-{
-    // Closing connections with client
-    for(int i=0; i<connections; ++i)
-        if(close(c_endpoints[i]) == -1)
-            perror("Closing client connection");
-        
-    // Closing socket
-    if(close(s_endpoint) == -1)
-        perror("Closing socket");
 }

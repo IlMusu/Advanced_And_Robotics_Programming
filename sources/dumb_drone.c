@@ -48,32 +48,48 @@ int main(int argc, char *argv[])
     int spawnx = atoi(argv[1]);
     int spawny = atoi(argv[2]);
     
-    int result = send_spawn_message(socket_fd, spawnx, spawny);
-    printf("spawn result is: %i\n", result);
+    int result = send_spawn_message(socket_fd, spawnx, spawny, 0);
+    printf("Spawn result is: %i\n", result);
     sleep(1);
     
-    int moves = 0;
+    int moves = rand()%30+20;
     
     while(1)
     {
         int movement = rand() % 5 + 5;
         int offx = rand() % 3 - 1;
         int offy = rand() % 3 - 1;
+        int offz = 0;
+        
+        if(rand()%5 == 0)
+        {
+            offx = 0;
+            offy = 0;
+            offz = rand()%2 ? 1 : -1;
+            movement = rand()%3+2;
+        }
         
         while(--movement > 0)
         {
-            printf("trying to move %i %i\n", offx, offy);
-            int result = send_move_message(socket_fd, offx, offy);
-            printf("move result is: ");
-            drone_error(result);
-            ++moves;
+            int result = send_move_message(socket_fd, offx, offy, offz);
+            printf("Tried to move %i %i %i : ", offx, offy, offz); drone_error(result);
+            --moves;
             sleep(1);
         }
         
-        if(moves >= 15)
+        if(moves <= 0)
         {
+            for(int i=0; i<10; ++i)
+            {
+                int result = send_move_message(socket_fd, 0, 0, -1);
+                printf("Tried to move down: "); drone_error(result);
+                if(result == OUT_OF_BOUNDS_POSITION)
+                    break;
+                sleep(1);
+            }
+            
             send_landing_message(socket_fd, 1);
-            moves = 0;
+            moves = rand()%30+20;
             sleep(10);
             send_landing_message(socket_fd, 0);
         }

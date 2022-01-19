@@ -19,11 +19,11 @@
 
 int decode_client_message(int id, int client_fd);
 
-int send_spawn_message(int master_fd, int posx, int posy);
-int (*handle_spawn_message)(int, int, int);
+int send_spawn_message(int master_fd, int posx, int posy, int posz);
+int (*handle_spawn_message)(int, int, int, int);
 
-int send_move_message(int master_fd, int offx, int offy);
-int (*handle_move_message)(int, int, int);
+int send_move_message(int master_fd, int offx, int offy, int offz);
+int (*handle_move_message)(int, int, int, int);
 
 int send_landing_message(int master_fd, int landed);
 int (*handle_landing_message)(int, int);

@@ -13,7 +13,7 @@ int decode_client_message(int id, int client_fd)
     // Gets the message type
     int message;
     if(read(client_fd, &message, sizeof(int)) == -1)
-        perror("Reading message type");
+        return -1;
         
     // Decodes message and calls handler
     int result;
@@ -21,31 +21,35 @@ int decode_client_message(int id, int client_fd)
     {
         case SPAWN_MESSAGE:
         {
-            int posx, posy;
+            int posx, posy, posz;
             if(read(client_fd, &posx, sizeof(int)) == -1)
-                perror("Reading x position");
+                return -1;
             if(read(client_fd, &posy, sizeof(int)) == -1)
-                perror("Reading y position");
+                return -1;
+            if(read(client_fd, &posz, sizeof(int)) == -1)
+                return -1;
                 
-            result = handle_spawn_message(id, posx, posy);
+            result = handle_spawn_message(id, posx, posy, posz);
             break;
         }
         case MOVE_MESSAGE:
         {
-            int offx, offy;
+            int offx, offy, offz;
             if(read(client_fd, &offx, sizeof(int)) == -1)
-                perror("Reading x position");
+                return -1;
             if(read(client_fd, &offy, sizeof(int)) == -1)
-                perror("Reading y position");
+                return -1;
+            if(read(client_fd, &offz, sizeof(int)) == -1)
+                return -1;
                 
-            result = handle_move_message(id, offx, offy);
+            result = handle_move_message(id, offx, offy, offz);
             break;
         }
         case LANDING_MESSAGE:
         {
             int landing;
             if(read(client_fd, &landing, sizeof(int)) == -1)
-                perror("Reading x position");
+                return -1;
                 
             result = handle_landing_message(id, landing);
             break;
@@ -55,45 +59,45 @@ int decode_client_message(int id, int client_fd)
     }
     
     if(write(client_fd, &result, sizeof(int)) == -1)
-        perror("Receiving result from master");
+        return -1;
         
     return 0;
 }
 
-int send_spawn_message(int master_fd, int posx, int posy)
+int send_spawn_message(int master_fd, int posx, int posy, int posz)
 {
     int message = SPAWN_MESSAGE;
     if(write(master_fd, &message, sizeof(int)) == -1)
-        perror("Sending message type");
-        
+        return -1;
     if(write(master_fd, &posx, sizeof(int)) == -1)
-        perror("Sending x position");
-    
+        return -1;
     if(write(master_fd, &posy, sizeof(int)) == -1)
-        perror("Sending y position");
+        return -1;
+    if(write(master_fd, &posz, sizeof(int)) == -1)
+        return -1;
         
     int result;
     if(read(master_fd, &result, sizeof(int)) == -1)
-        perror("Receiving result from master");
+        return -1;
         
     return result;
 }
 
-int send_move_message(int master_fd, int offx, int offy)
+int send_move_message(int master_fd, int offx, int offy, int offz)
 {
     int message = MOVE_MESSAGE;
     if(write(master_fd, &message, sizeof(int)) == -1)
-        perror("Sending message type");
-        
+        return -1;
     if(write(master_fd, &offx, sizeof(int)) == -1)
-        perror("Sending x offset");
-    
+        return -1;
     if(write(master_fd, &offy, sizeof(int)) == -1)
-        perror("Sending y offset");
+        return -1;
+    if(write(master_fd, &offz, sizeof(int)) == -1)
+        return -1;
         
     int result;
     if(read(master_fd, &result, sizeof(int)) == -1)
-        perror("Receiving result from master");
+        return -1;
         
     return result;
 }
@@ -102,14 +106,14 @@ int send_landing_message(int master_fd, int landed)
 {
     int message = LANDING_MESSAGE;
     if(write(master_fd, &message, sizeof(int)) == -1)
-        perror("Sending message type");
+        return -1;
         
     if(write(master_fd, &landed, sizeof(int)) == -1)
-        perror("Sending landing info");
+        return -1;
         
     int result;
     if(read(master_fd, &result, sizeof(int)) == -1)
-        perror("Receiving result from master");
+        return -1;
         
     return result;
 }

@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
             int result = send_move_message(socket_fd, offx, offy, offz);
             printf("Tried to move %i %i %i : ", offx, offy, offz); drone_error(result);
             --moves;
-            sleep(1);
+            usleep(500000);
         }
         
         if(moves <= 0)
@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
                 printf("Tried to move down: "); drone_error(result);
                 if(result == OUT_OF_BOUNDS_POSITION)
                     break;
-                sleep(1);
+                usleep(1000000);
             }
             
             send_landing_message(socket_fd, 1);
             moves = rand()%30+20;
-            sleep(10);
+            usleep(500000);
             send_landing_message(socket_fd, 0);
         }
     }

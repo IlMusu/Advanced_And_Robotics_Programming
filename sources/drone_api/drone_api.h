@@ -17,6 +17,14 @@
 #define DRONE_NOT_SPAWNED 4
 #define DRONE_IS_LANDED 5
 
+typedef struct{
+    int spawned;
+    int posx;
+    int posy;
+    int posz;
+    int landed;
+}Drone;
+
 int decode_client_message(int id, int client_fd);
 
 int send_spawn_message(int master_fd, int posx, int posy, int posz);

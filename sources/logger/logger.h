@@ -9,10 +9,11 @@
 #include <stdio.h>
 #include <fcntl.h>
 
-typedef struct Logger
+typedef struct
 {
     char* prefix;
-    int fd;
+    char* path;     // Absolute path for log file
+    int fd;         // File descriptor of opened log file
 }Logger;
 
 int create_logger(Logger* logger, char* prefix, char* path);

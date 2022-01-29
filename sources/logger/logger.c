@@ -10,12 +10,18 @@ int create_logger(Logger* logger, char* prefix, char* path)
 {
     // Creating log file
     int fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|O_APPEND, 0666);
-    
     if(fd == -1)
         return -1;
         
+    // Getting absolute path for log file
+    char* absolute_path = realpath(path, NULL);
+    if(absolute_path == NULL)
+        return -1;
+        
     logger->prefix = prefix;
+    logger->path = absolute_path;
     logger->fd = fd;
+    
     return 0;
 }
 

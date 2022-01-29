@@ -79,7 +79,7 @@ int send_spawn_message(int master_fd, int posx, int posy, int posz)
     int result;
     if(read(master_fd, &result, sizeof(int)) == -1)
         return -1;
-        
+    
     return result;
 }
 

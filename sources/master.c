@@ -22,14 +22,6 @@
 #define MAP_SIZE_Y 80
 #define MAP_SIZE_Z 9
 
-typedef struct{
-    int spawned;
-    int posx;
-    int posy;
-    int posz;
-    int landed;
-}Drone;
-
 void free_resources();
 void on_error(int signo);
 
@@ -49,7 +41,7 @@ int on_landing_message(int id, int landing);
 
 char* colors[] = {RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN};
 
-Logger logger = {"", -1};
+Logger logger = {"", "", -1};
 
 int s_endpoint;
 int c_endpoints[MAX_CLIENTS];
@@ -61,6 +53,7 @@ int main(int argc, char *argv[])
 {
     // Init logger
     create_logger(&logger, "MASTER", "../log.txt");
+    
     // So that process can release resources in case of error
     signal(SIGTERM, on_error);
     

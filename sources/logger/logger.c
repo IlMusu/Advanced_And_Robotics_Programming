@@ -82,7 +82,7 @@ void info_hidden(Logger* logger, char* text, char* color, int console)
        write(logger->fd, "\n", 1) == -1)
         perror("Writing string on log file");
     
-    // Writing red info on console
+    // Writing info on console
     if(console)
     {
         printf("\n%s[", color);

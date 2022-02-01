@@ -10,4 +10,4 @@ gcc -c ./sources/logger/logger.c -o $LOGGER_LIB
 gcc ./sources/master.c -o ./exes/master -std=gnu99 $DRONE_API $LOGGER_LIB
 gcc ./sources/dumb_drone.c -o ./exes/dumb_drone $DRONE_API
 
-./exes/master
+./exes/master "./log.txt"

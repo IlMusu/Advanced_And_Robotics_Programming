@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <time.h>
 #include "./drone_api/drone_api.h"
 #include "./logger/logger.h"
 
@@ -20,7 +21,7 @@
 #define MAX_CLIENTS 6
 #define MAP_SIZE_X 40
 #define MAP_SIZE_Y 80
-#define MAP_SIZE_Z 9
+#define MAP_SIZE_Z 10
 
 void free_resources();
 void on_error(int signo);
@@ -52,8 +53,13 @@ Drone drones[MAX_CLIENTS];
 int main(int argc, char *argv[])
 {
     // Init logger
-    create_logger(&logger, "MASTER", "../log.txt");
+    create_logger(&logger, "MASTER", argv[1]);
     
+    // Printing start time in logger
+    char text[100];
+    strftime(text, 100, "Started on %x at %X.", localtime(&(time_t){time(NULL)}));
+    info(&logger, text, 0);
+  
     // So that process can release resources in case of error
     signal(SIGTERM, on_error);
     

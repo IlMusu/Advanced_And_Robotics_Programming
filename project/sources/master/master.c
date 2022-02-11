@@ -7,8 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
-#include "./drone_api/drone_api.h"
-#include "./logger/logger.h"
+#include "../drone_api/drone_api.h"
+#include "../logger/logger.h"
 
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
@@ -19,8 +19,8 @@
 #define CYAN    "\033[36m"
 
 #define MAX_CLIENTS 6
-#define MAP_SIZE_X 40
-#define MAP_SIZE_Y 80
+#define MAP_SIZE_X 80
+#define MAP_SIZE_Y 40
 #define MAP_SIZE_Z 10
 
 void free_resources();
@@ -29,7 +29,7 @@ void on_error(int signo);
 void accept_client();
 void disconnect_client(int index);
 
-void recreate_map();
+void create_map();
 void print_map();
 int is_inside_map(int posx, int posy, int posz);
 int get_drone(int posx, int posy, int posz);
@@ -73,10 +73,10 @@ int main(int argc, char *argv[])
     // Init drone_api library
     handle_spawn_message = on_spawn_message;
     handle_move_message = on_move_message;
-    handle_landing_message = on_landing_message;
+    handle_land_message = on_land_message;
     
     // Prints an empty map
-    recreate_map();
+    create_map();
     print_map();
     
     // Setting server data
@@ -132,7 +132,6 @@ int main(int argc, char *argv[])
             }
                 
         // Prints the new map
-        recreate_map();
         print_map();
     }
         
@@ -188,6 +187,7 @@ void accept_client()
         c_endpoints[index] = c_endpoint;
         char* text; asprintf(&text, "Client [%s] connected at index %d.", address, index);
         info(&logger, text, 0);
+        free(text);
     }
     else
     {
@@ -206,6 +206,7 @@ void disconnect_client(int id)
     
     char* text; asprintf(&text, "Client at index %d disconnected.", id);
     info(&logger, text, 0);
+    free(text);
 }
 
 int on_spawn_message(int id, int posx, int posy, int posz)
@@ -234,6 +235,10 @@ int on_move_message(int id, int offx, int offy, int offz)
     if(drone.landed == 1)
         return DRONE_IS_LANDED;
         
+    // Drone needs to move at one cell at a time
+    if(abs(offx)>1 || abs(offy)>1 || abs(offz)>1)
+        return ONE_CELL_AT_A_TIME;
+        
     // Getting target position
     int posx = drone.posx + offx;
     int posy = drone.posy + offy;
@@ -256,7 +261,7 @@ int on_move_message(int id, int offx, int offy, int offz)
 }
 
 
-int on_landing_message(int id, int landed)
+int on_land_message(int id, int landed)
 {
     Drone drone = drones[id];
     
@@ -303,49 +308,62 @@ int get_visible_drone(int posx, int posy)
     return index;
 }
 
-void recreate_map()
+void create_map()
 {
-    for(int i=0; i<40; ++i)
+    // Creating outher walls
+    for(int x=0; x<MAP_SIZE_X; ++x)
     {
-        for(int j=0; j<80; ++j)
+        for(int y=0; y<MAP_SIZE_Y; ++y)
         {
-            if(i==0 || i==39 || j==0 || j==79)
-                map[i][j] = '*';
+            if(x==0 || x==MAP_SIZE_X-1 || y==0 || y==MAP_SIZE_Y-1)
+                map[x][y] = '*';
             else
-                map[i][j] = ' ';
+                map[x][y] = ' ';
         }
     }
     
+    // Creating walls in center
     for(int i=0; i<10; ++i)
     {        
-        map[i+03][54] = '*';
-        map[i+24][43] = '*';
-        map[13][i+06] = '*';
-        map[33][i+38] = '*';
-    }
-    
-    for(int i=0; i<MAX_CLIENTS; ++i)
-    {
-        Drone d = drones[i];
-        if(d.spawned)
-            map[d.posx][d.posy] = drone_to_char(d);
+        map[54][i+03] = '*';
+        map[43][i+24] = '*';
+        map[i+06][13] = '*';
+        map[i+38][33] = '*';
     }
 }
 
 void print_map()
 {    
-    for(int i=39; i>=0; --i)
+    // Setting markers for drones
+    for(int i=0; i<MAX_CLIENTS; ++i)
     {
-        for(int j=0; j<=79; ++j)
+        Drone d = drones[i];
+        if(d.spawned)
+            map[d.posx][d.posy] = 'd';
+    }
+    
+    for(int y=MAP_SIZE_Y-1; y>=0; --y)
+    {
+        for(int x=0; x<MAP_SIZE_X; ++x)
         {
-            int id = get_visible_drone(i, j);
-                
-            if(id != -1)
-                printf("%s%c" RESET, colors[id], map[i][j]);
+            if(map[x][y]=='d')
+            {
+                int id = get_visible_drone(x, y);
+                printf("%s%c" RESET, colors[id], drone_to_char(drones[id]));
+            }
             else
-                printf("%c", map[i][j]);
+                printf("%c", map[x][y]);
+            
         }
         printf("\n");
+    }
+    
+    // Removing markers for drones
+    for(int i=0; i<MAX_CLIENTS; ++i)
+    {
+        Drone d = drones[i];
+        if(d.spawned)
+            map[d.posx][d.posy] = ' ';
     }
     
     fflush(stdout);

@@ -7,7 +7,8 @@ gcc -c ./sources/drone_api/drone_api.c -o $DRONE_API
 gcc -c ./sources/logger/logger.c -o $LOGGER_LIB
 
 # Compiling sources with requires libraries and commands
-gcc ./sources/master.c -o ./exes/master -std=gnu99 $DRONE_API $LOGGER_LIB
+gcc ./sources/master/master.c -o ./exes/master -std=gnu99 $DRONE_API $LOGGER_LIB
 gcc ./sources/dumb_drone.c -o ./exes/dumb_drone $DRONE_API
 
-./exes/master "./log.txt"
+gnome-terminal -- "./exes/master" "./log.txt"
+gnome-terminal -- "./exes/dumb_drone" "10" "10"

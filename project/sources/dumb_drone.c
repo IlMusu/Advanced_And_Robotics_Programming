@@ -63,8 +63,6 @@ int main(int argc, char *argv[])
         
         if(rand()%5 == 0)
         {
-            offx = 0;
-            offy = 0;
             offz = rand()%2 ? 1 : -1;
             movement = rand()%3+2;
         }

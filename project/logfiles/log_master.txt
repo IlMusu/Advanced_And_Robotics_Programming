@@ -1,2 +1,0 @@
-[MASTER] Started on 02/12/22 at 00:47:55.
-[MASTER] Binding socket: Address already in use

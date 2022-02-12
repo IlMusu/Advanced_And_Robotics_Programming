@@ -6,7 +6,6 @@
 #include <strings.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <time.h>
 #include "../drone_api/drone_api.h"
 #include "../logger/logger.h"
 
@@ -54,11 +53,7 @@ int main(int argc, char *argv[])
 {
     // Init logger
     create_logger(&logger, "MASTER", argv[1]);
-    
-    // Printing start time in logger
-    char text[100];
-    strftime(text, 100, "Started on %x at %X.", localtime(&(time_t){time(NULL)}));
-    info(&logger, text, 0);
+    info(&logger, "Started the initialization phase.", 0);
   
     // So that process can release resources in case of error
     signal(SIGTERM, on_error);
@@ -79,6 +74,8 @@ int main(int argc, char *argv[])
     create_map();
     print_map();
     
+    info(&logger, "Data initialized, initializating socket.", 0);
+    
     // Setting server data
     struct sockaddr_in serv_addr;
     bzero((char *) &serv_addr, sizeof(serv_addr));  
@@ -97,6 +94,8 @@ int main(int argc, char *argv[])
     // Makes the server listen for clients with a maximum queue of 5
     if(listen(s_endpoint, 5) == -1)
         perror_exit(&logger, "Listening on socket");
+        
+    info(&logger, "Socket initialized, waiting for connections.", 0);
     
     // Set of file descriptors
     fd_set fds;
@@ -125,12 +124,13 @@ int main(int argc, char *argv[])
             {
                 int error = decode_client_message(i, c_endpoints[i]);
                 
+                // If the client is not connected any more, disconnects it
                 if(error == EPIPE)
                     disconnect_client(i);
                 else if(error == -1)
                     perror_exit(&logger, "Decoding client message");
             }
-                
+            
         // Prints the new map
         print_map();
     }
@@ -278,6 +278,7 @@ int on_land_message(int id, int landed)
     return SUCCESS;
 }
 
+// Checks if position is inside the map
 int is_inside_map(int posx, int posy, int posz)
 {
     return  posx >= 0 && posx < MAP_SIZE_X && 
@@ -285,6 +286,7 @@ int is_inside_map(int posx, int posy, int posz)
             posz >= 0 && posz < MAP_SIZE_Z;
 }
 
+// Gets the drone at (x, y, z)
 int get_drone(int posx, int posy, int posz)
 {
     for(int i=0; i<MAX_CLIENTS; ++i)
@@ -297,6 +299,7 @@ int get_drone(int posx, int posy, int posz)
     return -1;
 }
 
+// Gets the drone at (x, y) with the highest z value
 int get_visible_drone(int posx, int posy)
 {
     int posz = -1;
@@ -362,7 +365,7 @@ void print_map()
         printf("\n");
     }
     
-    // Removing markers for drones
+    // Removing markers
     for(int i=0; i<MAX_CLIENTS; ++i)
     {
         Drone d = drones[i];

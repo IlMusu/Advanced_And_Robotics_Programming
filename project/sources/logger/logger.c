@@ -74,8 +74,13 @@ void info(Logger* logger, char* text, int console)
 
 void info_hidden(Logger* logger, char* text, char* color, int console)
 {
+    // Getting current time for log
+    char now[9];
+    strftime(now, 9, "%X", localtime(&(time_t){time(NULL)}));
+    
     // Writing info on log.txt file
-    if(write(logger->fd, "[", 1) == -1 ||
+    if(write(logger->fd, now, 8) == -1 ||
+       write(logger->fd, " | [", 4) == -1 ||
        write(logger->fd, logger->prefix, strlen(logger->prefix)) == -1 ||
        write(logger->fd, "] ", 2) == -1 ||
        write(logger->fd, text, strlen(text)) == -1 ||

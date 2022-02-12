@@ -9,55 +9,59 @@ int decode_client_message(int id, int client_fd)
         return -1;
     if(error != 0)
         return error;
-        
+    
+    // If the message is not correcly decoded, this value is not changed
+    // and the drone receives an INVALID_MESSAGE error
+    int result = INVALID_MESSAGE;
+    
     // Gets the message type
     int message;
-    if(read(client_fd, &message, sizeof(int)) == -1)
-        return -1;
-        
-    // Decodes message and calls handler
-    int result;
-    switch(message)
+    if(read(client_fd, &message, sizeof(int)) != -1)
     {
-        case SPAWN_MESSAGE:
+        // Decodes the message and calls the correct handler
+        switch(message)
         {
-            int posx, posy, posz;
-            if(read(client_fd, &posx, sizeof(int)) == -1)
-                return -1;
-            if(read(client_fd, &posy, sizeof(int)) == -1)
-                return -1;
-            if(read(client_fd, &posz, sizeof(int)) == -1)
-                return -1;
-                
-            result = handle_spawn_message(id, posx, posy, posz);
-            break;
+            case SPAWN_MESSAGE:
+            {
+                int posx, posy, posz;
+                if(read(client_fd, &posx, sizeof(int)) == -1)
+                    break;
+                if(read(client_fd, &posy, sizeof(int)) == -1)
+                    break;
+                if(read(client_fd, &posz, sizeof(int)) == -1)
+                    break;
+                    
+                result = handle_spawn_message(id, posx, posy, posz);
+                break;
+            }
+            case MOVE_MESSAGE:
+            {
+                int offx, offy, offz;
+                if(read(client_fd, &offx, sizeof(int)) == -1)
+                    break;
+                if(read(client_fd, &offy, sizeof(int)) == -1)
+                    break;
+                if(read(client_fd, &offz, sizeof(int)) == -1)
+                    break;
+                    
+                result = handle_move_message(id, offx, offy, offz);
+                break;
+            }
+            case LAND_MESSAGE:
+            {
+                int landing;
+                if(read(client_fd, &landing, sizeof(int)) == -1)
+                    break;
+                    
+                result = handle_land_message(id, landing);
+                break;
+            }
+            default:
+                break;
         }
-        case MOVE_MESSAGE:
-        {
-            int offx, offy, offz;
-            if(read(client_fd, &offx, sizeof(int)) == -1)
-                return -1;
-            if(read(client_fd, &offy, sizeof(int)) == -1)
-                return -1;
-            if(read(client_fd, &offz, sizeof(int)) == -1)
-                return -1;
-                
-            result = handle_move_message(id, offx, offy, offz);
-            break;
-        }
-        case LAND_MESSAGE:
-        {
-            int landing;
-            if(read(client_fd, &landing, sizeof(int)) == -1)
-                return -1;
-                
-            result = handle_land_message(id, landing);
-            break;
-        }
-        default:
-            break;
     }
-    
+        
+    // Sends the result to the drone
     if(write(client_fd, &result, sizeof(int)) == -1)
         return -1;
         
@@ -124,6 +128,9 @@ void drone_error(int error)
     {
         case SUCCESS:
             printf("Success\n");
+            break;
+        case INVALID_MESSAGE:
+            printf("Message contents are not valid\n");
             break;
         case OUT_OF_BOUNDS_POSITION:
             printf("Target position is not inside map\n");

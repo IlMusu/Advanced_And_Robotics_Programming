@@ -38,7 +38,7 @@ char drone_to_char(Drone drone);
 
 int on_spawn_message(int id, int posx, int posy, int posz);
 int on_move_message(int id, int offx, int offy, int offz);
-int on_landing_message(int id, int landing);
+int on_land_message(int id, int landing);
 
 char* colors[] = {RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN};
 
@@ -212,6 +212,8 @@ void disconnect_client(int id)
 int on_spawn_message(int id, int posx, int posy, int posz)
 {
     // Basic checks
+    if(drones[id].spawned == 1)
+        return DRONE_ALREADY_SPAWNED;
     if(!is_inside_map(posx, posy, posz))
         return OUT_OF_BOUNDS_POSITION;
     if(map[posx][posy] == '*')
@@ -268,6 +270,8 @@ int on_land_message(int id, int landed)
     // A not spawned drone cannot land
     if(drone.spawned == 0)
         return DRONE_NOT_SPAWNED;
+    if(drone.posz != 0)
+        return LAND_ONLY_AT_Z0;
         
     drones[id].landed = landed;
     

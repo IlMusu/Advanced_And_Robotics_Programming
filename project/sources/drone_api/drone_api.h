@@ -15,8 +15,10 @@
 #define OCCUPIED_POSITION_WALL 2
 #define OCCUPIED_POSITION_DRONE 3
 #define DRONE_NOT_SPAWNED 4
-#define DRONE_IS_LANDED 5
-#define ONE_CELL_AT_A_TIME 6
+#define DRONE_ALREADY_SPAWNED 5
+#define DRONE_IS_LANDED 6
+#define ONE_CELL_AT_A_TIME 7
+#define LAND_ONLY_AT_Z0 8
 
 typedef struct{
     int spawned;

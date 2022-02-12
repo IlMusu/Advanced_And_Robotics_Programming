@@ -45,7 +45,7 @@ int decode_client_message(int id, int client_fd)
             result = handle_move_message(id, offx, offy, offz);
             break;
         }
-        case LANDING_MESSAGE:
+        case LAND_MESSAGE:
         {
             int landing;
             if(read(client_fd, &landing, sizeof(int)) == -1)
@@ -104,7 +104,7 @@ int send_move_message(int master_fd, int offx, int offy, int offz)
 
 int send_land_message(int master_fd, int landed)
 {
-    int message = LANDING_MESSAGE;
+    int message = LAND_MESSAGE;
     if(write(master_fd, &message, sizeof(int)) == -1)
         return -1;
         
@@ -137,11 +137,17 @@ void drone_error(int error)
         case DRONE_NOT_SPAWNED:
             printf("Drone is not yet spawned in map\n");
             break;
+        case DRONE_ALREADY_SPAWNED:
+            printf("Drone is already spawned in map\n");
+            break;
         case DRONE_IS_LANDED:
             printf("Drone is currently landed\n");
             break;
         case ONE_CELL_AT_A_TIME:
             printf("Drone needs to move one cell at a time\n");
+            break;
+        case LAND_ONLY_AT_Z0:
+            printf("Drone can land only at z=0\n");
             break;
         default:
             printf("Print not implemented for %d\n", error);

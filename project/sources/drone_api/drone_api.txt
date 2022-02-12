@@ -6,9 +6,10 @@ There are some #define that are used to define all the possible responses to a d
 2. OCCUPIED_POSITION_WALL: the requested position is occupied by a wall.
 3. OCCUPIED_POSITION_DRONE: the requested position is occupied by a drone.
 4. DRONE_NOT_SPAWNED: the drone needs to be spawned.
-5. DRONE_IS_LANDED: the drone needs to not be landed.
-6. ONE_CELL_AT_A_TIME: the drone requested to move more than 1 cell.
-7. LAND_ONLY_AT_Z0: the drone requested to land when not at z=0.
+5. DRONE_ALREADY_SPAWNED: the drone is already spawned in map.
+6. DRONE_IS_LANDED: the drone needs to not be landed.
+7. ONE_CELL_AT_A_TIME: the drone requested to move more than 1 cell.
+8. LAND_ONLY_AT_Z0: the drone requested to land when not at z=0.
 
 A drone can use the following functions to send requests to the master:
 1. send_spawn_message: to spawn the drone in a specific position.

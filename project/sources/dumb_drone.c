@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     int spawny = atoi(argv[2]);
     
     int result = send_spawn_message(socket_fd, spawnx, spawny, 0);
-    printf("Spawn result is: %i\n", result);
+    printf("Spawn result is: "); drone_error(result);
     sleep(1);
     
     int moves = rand()%30+20;
@@ -86,10 +86,10 @@ int main(int argc, char *argv[])
                 usleep(1000000);
             }
             
-            send_landing_message(socket_fd, 1);
+            send_land_message(socket_fd, 1);
             moves = rand()%30+20;
             usleep(500000);
-            send_landing_message(socket_fd, 0);
+            send_land_message(socket_fd, 0);
         }
     }
     

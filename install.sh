@@ -1,25 +1,29 @@
-# Creating folder if not existing
+# Creates specified folder if not existing
 mkdir -p $1
 
-# Unzippin into the specified directory
+# Unzips into the specified directory
 unzip -q project.zip -d $1
 
-# Creating folder to store the executable files
-mkdir -p $1/exes/
+# Defining important directories
+SOURCES_DIR="$1/sources"
+EXES_DIR="$1/exes"
+LOGFILES_DIR="$1/logs"
+
+# Creats folder to store the executable files
+mkdir -p $EXES_DIR
 # Creating folder to store the log files
-mkdir -p $1/logfiles
+mkdir -p $LOGFILES_DIR
 
-S=$1"/sources"
-E=$1"/exes"
+# Defining libraries object files locations
+DRONE_API="$SOURCES_DIR/drone_api/drone_api.o"
+LOGGER_LIB="$SOURCES_DIR/logger/logger.o"
 
-DRONE_API=$S/drone_api/drone_api.o
-LOGGER=$S/logger/logger.o
+# Compiling libraries
+gcc -c $SOURCES_DIR/drone_api/drone_api.c -o $DRONE_API
+gcc -c $SOURCES_DIR/logger/logger.c       -o $LOGGER_LIB
 
-#### Compile libraries ####
-# -c to create an object file rather than an executable
-gcc -c $S/drone_api/drone_api.c -o $DRONE_API
-gcc -c $S/logger/logger.c -o $LOGGER
+# Compiling sources with requires libraries
+gcc $SOURCES_DIR/master/master.c       -o $EXES_DIR/master       $DRONE_API $LOGGER_LIB -std=gnu99
+gcc $SOURCES_DIR/drone_ms3/drone_ms3.c -o $EXES_DIR/drone_ms3    $DRONE_API $LOGGER_LIB
 
-#### Compile sources ####
-# (Libraries need to be manually linked)
-gcc $S/master/master.c -o $E/master -std=gnu99 $DRONE_API $LOGGER
+

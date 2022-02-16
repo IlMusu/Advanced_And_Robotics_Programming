@@ -26,6 +26,10 @@ typedef struct
 // and fills the necessary parameters of the Logger.
 int create_logger(Logger* logger, char* prefix, char* path);
 
+// Utility funtion to release the resources allocated
+// when using the create_logger functioality.
+int destroy_logger(Logger* logger);
+
 // Prints the following: time | [prefix] text: perror string
 // on the log file and on console in red
 // and sends a SIGTERM to the caller process

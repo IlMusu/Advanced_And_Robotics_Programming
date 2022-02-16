@@ -1,0 +1,20 @@
+09:09:35 | [MASTER] Started the initialization phase.
+09:09:35 | [MASTER] Data initialized, initializating socket.
+09:09:35 | [MASTER] Socket initialized, waiting for connections.
+09:09:35 | [drone_ms3] Starting
+09:09:35 | [MASTER] Client [127.0.0.1] connected at index 0.
+09:09:35 | [drone_ms3] Spawn position not valid. Re-computing...
+09:09:35 | [drone_ms3] Spawn position: [x = 29, y = 27, z = 0]
+09:09:36 | [drone_ms3] Direction computed = [Vx = 0, Vy = 0, Vz = 0].
+09:09:36 | [drone_ms3] Cannot move due to a drone occupying the position.
+09:09:36 | [drone_ms3] Direction computed = [Vx = 0, Vy = 0, Vz = 0].
+09:09:36 | [drone_ms3] Cannot move due to a drone occupying the position.
+09:09:36 | [drone_ms3] Direction computed = [Vx = 0, Vy = 3, Vz = 3].
+09:09:36 | [drone_ms3] Current position = [29, 28, 1].
+09:09:36 | [drone_ms3] Battery remaining: 99 %
+09:09:37 | [drone_ms3] Direction computed = [Vx = 0, Vy = 3, Vz = 3].
+09:09:37 | [drone_ms3] Current position = [29, 29, 2].
+09:09:37 | [drone_ms3] Battery remaining: 98 %
+09:09:37 | [drone_ms3] Direction computed = [Vx = 0, Vy = 3, Vz = 3].
+09:09:37 | [drone_ms3] Current position = [29, 30, 3].
+09:09:37 | [drone_ms3] Battery remaining: 97 %

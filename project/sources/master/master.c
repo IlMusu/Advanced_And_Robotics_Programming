@@ -55,11 +55,17 @@ Drone drones[MAX_CLIENTS];
 
 int main(int argc, char *argv[])
 {
+    printf("\n\n\n\n\n\n\n\n");
     // Inits the random seed
     srand(time(NULL)); 
     
     // Inits logger
-    create_logger(&logger, "MASTER", argv[1]);
+    if(create_logger(&logger, "MASTER", argv[1]) == -1)
+    {
+        perror("Creating logger");
+        return -1;
+    }
+    
     info(&logger, "Started the initialization phase.", 0);
   
     // Inits signal to release resources in case of error
@@ -156,6 +162,10 @@ void free_resources()
     // Closes socket
     if(close(s_endpoint) == -1)
         perror_cont(&logger, "Closing socket");
+        
+    // Closing logger
+    if(destroy_logger(&logger) == -1)
+        perror("Destroying logger");
 }
 
 void on_error(int signo)

@@ -9,7 +9,7 @@ void info_hidden(Logger* logger, char* text, char* color, int console);
 int create_logger(Logger* logger, char* prefix, char* path)
 {
     // Creating log file
-    int fd = open(path, O_WRONLY|O_CREAT|O_TRUNC|O_APPEND, 0666);
+    int fd = open(path, O_WRONLY|O_CREAT|O_APPEND, 0666);
     if(fd == -1)
         return -1;
         
@@ -25,6 +25,15 @@ int create_logger(Logger* logger, char* prefix, char* path)
     return 0;
 }
 
+int destroy_logger(Logger* logger)
+{
+    // Closing the opened log file
+    if(close(logger->fd))
+        return -1;
+        
+    return 0;
+}
+
 // Prints error from perror and makes process terminate
 void perror_exit(Logger* logger, char* text)
 {
@@ -32,7 +41,8 @@ void perror_exit(Logger* logger, char* text)
     perror_cont(logger, text);
     
     // Terminating caller process
-    kill(getpid(), SIGTERM);
+    if(kill(getpid(), SIGTERM) == -1)
+        perror("Logger sending SIGTERM signal");
 }
 
 // Prints error from perror and makes process continue
@@ -58,7 +68,8 @@ void error_exit(Logger* logger, char* text)
     error_cont(logger, text);
     
     // Terminating caller process
-    kill(getpid(), SIGTERM);
+    if(kill(getpid(), SIGTERM) == -1)
+        perror("Logger sending SIGTERM signal");
 }
 
 // Prints error in text and makes process continue

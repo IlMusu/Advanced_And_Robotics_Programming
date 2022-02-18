@@ -14,10 +14,10 @@ mkdir -p $LOGFILES_DIR
 
 # Compiling libraries
 gcc -c $SOURCES_DIR/drone_api/drone_api.c -o $DRONE_API
-gcc -c $SOURCES_DIR/logger/logger.c       -o $LOGGER_LIB
+gcc -c $SOURCES_DIR/logger/logger.c       -o $LOGGER_LIB -std=gnu99
 
 # Compiling sources with requires libraries and commands
-gcc $SOURCES_DIR/master/master.c       -o $EXES_DIR/master       $DRONE_API $LOGGER_LIB -std=gnu99 -pthread
-gcc $SOURCES_DIR/drone_ms3/drone_ms3.c -o $EXES_DIR/drone_ms3    $DRONE_API $LOGGER_LIB -pthread
+gcc $SOURCES_DIR/master/master.c -o $EXES_DIR/master $DRONE_API $LOGGER_LIB -std=gnu99
+gcc $SOURCES_DIR/drone/drone.c   -o $EXES_DIR/drone  $DRONE_API $LOGGER_LIB -std=gnu99
 
 sh ./run.sh

@@ -1,5 +1,6 @@
 #ifndef ASSIGNEMNT3_LOGGER_LIB
 #define ASSIGNEMNT3_LOGGER_LIB
+#define _GNU_SOURCE
 
 #include <errno.h>
 #include <string.h>

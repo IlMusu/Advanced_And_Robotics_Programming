@@ -48,17 +48,15 @@ void perror_exit(Logger* logger, char* text)
 // Prints error from perror and makes process continue
 void perror_cont(Logger* logger, char* text)
 {
-    // Concatenating string to obtain error
-    char* error = strerror(errno);
-    char* middle = ": \0";
+    // Creating the full error string
+    char* text_perror;
+    asprintf(&text_perror, "%s : %s", text, strerror(errno));
     
-    char string[512] = "\0";
-    strcat(string, text);
-    strcat(string, middle);
-    strcat(string, error);
+    // Actually printing the string in log file
+    error_cont(logger, text_perror);
     
-    // Print error in log and console but continue executing
-    error_cont(logger, string);
+    // Deallocating the string after usage
+    free(text_perror);
 }
 
 // Prints error in text and makes process terminate
@@ -89,23 +87,21 @@ void info_hidden(Logger* logger, char* text, char* color, int console)
     char now[9];
     strftime(now, 9, "%X", localtime(&(time_t){time(NULL)}));
     
-    // Writing info on log.txt file
-    if(write(logger->fd, now, 8) == -1 ||
-       write(logger->fd, " | [", 4) == -1 ||
-       write(logger->fd, logger->prefix, strlen(logger->prefix)) == -1 ||
-       write(logger->fd, "] ", 2) == -1 ||
-       write(logger->fd, text, strlen(text)) == -1 ||
-       write(logger->fd, "\n", 1) == -1)
-        perror("Writing string on log file");
+    // Writing full entry on log file
+    char* entry;
+    asprintf(&entry, "%s | [%s] %s\n", now, logger->prefix, text);
+    
+    // Actually printing the string in the log file
+    if(write(logger->fd, entry, strlen(entry)) == -1)
+        perror("Writing entry on log file");
     
     // Writing info on console
     if(console)
     {
-        printf("\n%s[", color);
-        printf("%s", logger->prefix);
-        printf("] ");
-        printf("%s", text);
-        printf(RESET "\n");
+        printf("\n %s %s RESET \n", color, entry);
         fflush(stdout);
     }
+    
+    // String needs to be deallocated when using asprintf
+    free(entry);
 }
